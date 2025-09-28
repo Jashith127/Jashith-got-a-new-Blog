@@ -1,5 +1,5 @@
 ---
-title: "Canadian Wages"
+title: "Canadian Wages Jash"
 ---
 
 ## Setup R Packages
@@ -119,9 +119,8 @@ gf_bar(~language, data = wages_munged, fill = ~language) %>%
 
 ```
 
-
-
 ## Quant Log Scale
+
 ```{r}
 # Wages by Sex
 gf_boxplot(sex ~ wages, data = wages_munged, fill = ~sex, orientation = "y") %>%
@@ -138,6 +137,7 @@ gf_boxplot(sex ~ education, data = wages_munged, fill = ~sex, orientation = "y")
 ```
 
 ##Data dictionary
+
 ```{r}
 dplyr::count(wages_munged)
 dplyr::summarise(wages_munged)

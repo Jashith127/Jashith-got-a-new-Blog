@@ -1,5 +1,5 @@
 ---
-title: "fertility"
+title: "fertility Jash"
 ---
 
 ```{r}
@@ -110,7 +110,7 @@ fertility_sample %>%
 fertility <- read_csv("data/Fertility.csv")
 ```
 
-##  Count of Kids by Age Group
+## Count of Kids by Age Group
 
 ```{r}
 

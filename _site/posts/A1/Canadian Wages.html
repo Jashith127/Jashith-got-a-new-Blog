@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Canadian Wages – Jashith got a new Blog</title>
+<title>Canadian Wages Jash – Jashith got a new Blog</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -149,7 +149,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Canadian Wages</h1>
+      <h1 class="title">Canadian Wages Jash</h1>
                       </div>
   </div>
     
@@ -173,6 +173,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
+<p>A data set about Canadian Wages</p>
+<section id="setup-r-packages" class="level2">
+<h2 class="anchored" data-anchor-id="setup-r-packages">Setup R Packages</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -232,17 +235,7 @@ The following object is masked from 'package:mosaic':
 
     n_missing</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(visdat) <span class="co"># Mapping missing data</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(naniar) <span class="co"># Missing data visualization and munging</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Attaching package: 'naniar'
-
-The following object is masked from 'package:skimr':
-
-    n_complete</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor) <span class="co"># Clean the data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor) <span class="co"># Clean the data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'janitor'
@@ -251,7 +244,17 @@ The following objects are masked from 'package:stats':
 
     chisq.test, fisher.test</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tinytable) <span class="co"># Printing Tables for our data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(naniar) <span class="co"># Handle missing data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'naniar'
+
+The following object is masked from 'package:skimr':
+
+    n_complete</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(visdat) <span class="co"># Visualise missing data</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tinytable) <span class="co"># Printing Static Tables for our data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'tinytable'
@@ -260,9 +263,23 @@ The following object is masked from 'package:ggplot2':
 
     theme_void</code></pre>
 </div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DT) <span class="co"># Interactive Tables for our data</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(crosstable) <span class="co"># Multiple variable summaries</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'crosstable'
+
+The following object is masked from 'package:purrr':
+
+    compact</code></pre>
 </div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggformula) <span class="co"># Graphing</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="read-data" class="level2">
+<h2 class="anchored" data-anchor-id="read-data">Read Data</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>can_wage <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_csv</span>(<span class="st">"Data/Canadian_Wages.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>can_wages <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"Data/Canadian_Wages.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Rows: 7425 Columns: 6
 ── Column specification ────────────────────────────────────────────────────────
@@ -274,8 +291,442 @@ dbl (4): rownames, wages, education, age
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 </div>
 </div>
+</section>
+<section id="viewing-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="viewing-the-data">Viewing the Data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">glimpse</span>(can_wages)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 7,425
+Columns: 6
+$ rownames  &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 1…
+$ wages     &lt;dbl&gt; 10.56, 11.00, NA, 17.76, NA, 14.00, NA, NA, 8.20, NA, NA, 16…
+$ education &lt;dbl&gt; 15.0, 13.2, 16.0, 14.0, 8.0, 16.0, 12.0, 14.5, 15.0, 10.0, 1…
+$ age       &lt;dbl&gt; 40, 19, 49, 46, 71, 50, 70, 42, 31, 56, 71, 30, 56, 61, 25, …
+$ sex       &lt;chr&gt; "Male", "Male", "Male", "Male", "Male", "Female", "Female", …
+$ language  &lt;chr&gt; "English", "English", "Other", "Other", "English", "English"…</code></pre>
+</div>
+</div>
+</section>
+<section id="data-munging" class="level2">
+<h2 class="anchored" data-anchor-id="data-munging">Data Munging</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>wages_modified <span class="ot">&lt;-</span> can_wages <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  janitor<span class="sc">::</span><span class="fu">clean_names</span>(<span class="at">case =</span> <span class="st">"snake"</span>) <span class="co"># clean names</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>wages_modified</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 7,425 × 6
+   rownames wages education   age sex    language
+      &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;   
+ 1        1  10.6      15      40 Male   English 
+ 2        2  11        13.2    19 Male   English 
+ 3        3  NA        16      49 Male   Other   
+ 4        4  17.8      14      46 Male   Other   
+ 5        5  NA         8      71 Male   English 
+ 6        6  14        16      50 Female English 
+ 7        7  NA        12      70 Female English 
+ 8        8  NA        14.5    42 Female English 
+ 9        9   8.2      15      31 Male   English 
+10       10  NA        10      56 Female English 
+# ℹ 7,415 more rows</code></pre>
+</div>
+</div>
+</section>
+<section id="replacing-na" class="level2">
+<h2 class="anchored" data-anchor-id="replacing-na">Replacing NA</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>wages_modified1 <span class="ot">&lt;-</span> wages_modified <span class="sc">%&gt;%</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  naniar<span class="sc">::</span><span class="fu">replace_with_na_all</span>(<span class="at">condition =</span> <span class="sc">~</span> .x <span class="sc">%in%</span> common_na_numbers) <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">replace_with_na_all</span>(<span class="at">condition =</span> <span class="sc">~</span> .x <span class="sc">%in%</span> common_na_strings)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(wages_modified1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 7,425
+Columns: 6
+$ rownames  &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 1…
+$ wages     &lt;dbl&gt; 10.56, 11.00, NA, 17.76, NA, 14.00, NA, NA, 8.20, NA, NA, 16…
+$ education &lt;dbl&gt; 15.0, 13.2, 16.0, 14.0, 8.0, 16.0, 12.0, 14.5, 15.0, 10.0, 1…
+$ age       &lt;dbl&gt; 40, 19, 49, 46, 71, 50, 70, 42, 31, 56, 71, 30, 56, 61, 25, …
+$ sex       &lt;chr&gt; "Male", "Male", "Male", "Male", "Male", "Female", "Female", …
+$ language  &lt;chr&gt; "English", "English", "Other", "Other", "English", "English"…</code></pre>
+</div>
+</div>
+</section>
+<section id="replacing-na-still" class="level2">
+<h2 class="anchored" data-anchor-id="replacing-na-still">Replacing NA still (?)</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>wages_modified_clean <span class="ot">&lt;-</span> wages_modified1 <span class="sc">%&gt;%</span> </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a> tidyr<span class="sc">::</span><span class="fu">drop_na</span>() </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>wages_modified_clean</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3,980 × 6
+   rownames wages education   age sex    language
+      &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;   
+ 1        1 10.6       15      40 Male   English 
+ 2        2 11         13.2    19 Male   English 
+ 3        4 17.8       14      46 Male   Other   
+ 4        6 14         16      50 Female English 
+ 5        9  8.2       15      31 Male   English 
+ 6       12 17.0       13.5    30 Female English 
+ 7       14  6.7       12      61 Female English 
+ 8       20 14         14      46 Female Other   
+ 9       25 19.2       18      43 Male   English 
+10       26  7.25      11      17 Male   English 
+# ℹ 3,970 more rows</code></pre>
+</div>
+</div>
+</section>
+<section id="missing-data" class="level2">
+<h2 class="anchored" data-anchor-id="missing-data">Missing Data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>visdat<span class="sc">::</span><span class="fu">vis_miss</span>(wages_modified_clean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Canadian-Wages_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>visdat<span class="sc">::</span><span class="fu">vis_dat</span>(wages_modified_clean, <span class="at">sort_type =</span> <span class="cn">TRUE</span>, <span class="at">palette =</span> <span class="st">"cb_safe"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Canadian-Wages_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="data-munging-1" class="level2">
+<h2 class="anchored" data-anchor-id="data-munging-1">Data Munging</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>wages_munged <span class="ot">&lt;-</span> wages_modified_clean <span class="sc">%&gt;%</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">sex =</span> <span class="fu">as.factor</span>(sex),</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">language =</span> <span class="fu">as.factor</span>(language)</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># arrange the Qualitative (factors) first, then Quantitative</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">relocate</span>(<span class="fu">where</span>(is.factor), <span class="at">.after =</span> rownames)</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(wages_munged)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 3,980
+Columns: 6
+$ rownames  &lt;dbl&gt; 1, 2, 4, 6, 9, 12, 14, 20, 25, 26, 29, 30, 31, 37, 38, 43, 4…
+$ sex       &lt;fct&gt; Male, Male, Male, Female, Male, Female, Female, Female, Male…
+$ language  &lt;fct&gt; English, English, Other, English, English, English, English,…
+$ wages     &lt;dbl&gt; 10.56, 11.00, 17.76, 14.00, 8.20, 16.97, 6.70, 14.00, 19.20,…
+$ education &lt;dbl&gt; 15.0, 13.2, 14.0, 16.0, 15.0, 13.5, 12.0, 14.0, 18.0, 11.0, …
+$ age       &lt;dbl&gt; 40, 19, 46, 50, 31, 30, 61, 46, 43, 17, 46, 32, 35, 39, 32, …</code></pre>
+</div>
+</div>
+</section>
+<section id="table-captioning-title" class="level2">
+<h2 class="anchored" data-anchor-id="table-captioning-title">Table Captioning (Title)</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>wages_munged <span class="sc">%&gt;%</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  tinytable<span class="sc">::</span><span class="fu">tt</span>(<span class="at">caption =</span> <span class="st">"Wage Dataset (Clean)"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  tinytable<span class="sc">::</span><span class="fu">theme_html</span>(<span class="at">class =</span> <span class="st">"table table-hover table-striped table-condensed"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">style_tt</span>(<span class="at">fontsize =</span> <span class="fl">0.8</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  stats<span class="sc">::</span><span class="fu">setNames</span>(<span class="fu">c</span>(<span class="st">"Row ID"</span>, <span class="st">"Sex"</span>, <span class="st">"Language"</span>, <span class="st">"Wages"</span>, <span class="st">"Education"</span>, <span class="st">"Age"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_j78sto6e7ew5f1bplifc(i, j, css_id) {
+          var table = document.getElementById("tinytable_j78sto6e7ew5f1bplifc");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function spanCell_j78sto6e7ew5f1bplifc(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_j78sto6e7ew5f1bplifc");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '10', j: 4 }, { i: '10', j: 2 }, { i: '10', j: 3 }, { i: '10', j: 0 }, { i: '10', j: 1 }, { i: '10', j: 5 },  ], css_id: 'tinytable_css_iyfd339cfrh120sff9vb',}, 
+          { positions: [ { i: '2', j: 0 }, { i: '4', j: 0 }, { i: '6', j: 0 }, { i: '8', j: 0 }, { i: '1', j: 0 }, { i: '1', j: 2 }, { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '3', j: 0 }, { i: '6', j: 1 }, { i: '5', j: 0 }, { i: '8', j: 1 }, { i: '7', j: 0 }, { i: '1', j: 3 }, { i: '9', j: 0 }, { i: '3', j: 3 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '5', j: 1 }, { i: '8', j: 2 }, { i: '7', j: 1 }, { i: '1', j: 4 }, { i: '9', j: 1 }, { i: '3', j: 4 }, { i: '2', j: 3 }, { i: '5', j: 4 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '7', j: 3 }, { i: '8', j: 3 }, { i: '7', j: 2 }, { i: '1', j: 5 }, { i: '9', j: 2 }, { i: '3', j: 5 }, { i: '2', j: 4 }, { i: '5', j: 5 }, { i: '4', j: 4 }, { i: '7', j: 5 }, { i: '6', j: 4 }, { i: '7', j: 4 }, { i: '8', j: 4 }, { i: '9', j: 4 }, { i: '9', j: 3 }, { i: '9', j: 5 }, { i: '2', j: 5 }, { i: '4', j: 5 }, { i: '6', j: 5 }, { i: '8', j: 5 },  ], css_id: 'tinytable_css_jj9j2lzlnv1op905xsw3',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 1 },  ], css_id: 'tinytable_css_u9dkv5yrtu73umubopmb',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_j78sto6e7ew5f1bplifc(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_iyfd339cfrh120sff9vb, .table th.tinytable_css_iyfd339cfrh120sff9vb { font-size: 0.8em; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_jj9j2lzlnv1op905xsw3, .table th.tinytable_css_jj9j2lzlnv1op905xsw3 { font-size: 0.8em; }
+      .table td.tinytable_css_u9dkv5yrtu73umubopmb, .table th.tinytable_css_u9dkv5yrtu73umubopmb { font-size: 0.8em; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-hover table-striped table-condensed" id="tinytable_j78sto6e7ew5f1bplifc" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        </thead><caption>Wage Dataset (Clean)</caption>
+              <tbody><tr>
+                <th scope="col" data-row="0" data-col="0">Row ID</th>
+                <th scope="col" data-row="0" data-col="1">Sex</th>
+                <th scope="col" data-row="0" data-col="2">Language</th>
+                <th scope="col" data-row="0" data-col="3">Wages</th>
+                <th scope="col" data-row="0" data-col="4">Education</th>
+                <th scope="col" data-row="0" data-col="5">Age</th>
+              </tr>
+        
+        
+        </tbody><tbody>
+                <tr>
+                  <td data-row="1" data-col="0">1</td>
+                  <td data-row="1" data-col="1">Male</td>
+                  <td data-row="1" data-col="2">English</td>
+                  <td data-row="1" data-col="3">10.56</td>
+                  <td data-row="1" data-col="4">15.0</td>
+                  <td data-row="1" data-col="5">40</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="0">2</td>
+                  <td data-row="2" data-col="1">Male</td>
+                  <td data-row="2" data-col="2">English</td>
+                  <td data-row="2" data-col="3">11.00</td>
+                  <td data-row="2" data-col="4">13.2</td>
+                  <td data-row="2" data-col="5">19</td>
+                </tr>
+                <tr>
+                  <td data-row="3" data-col="0">4</td>
+                  <td data-row="3" data-col="1">Male</td>
+                  <td data-row="3" data-col="2">Other</td>
+                  <td data-row="3" data-col="3">17.76</td>
+                  <td data-row="3" data-col="4">14.0</td>
+                  <td data-row="3" data-col="5">46</td>
+                </tr>
+                <tr>
+                  <td data-row="4" data-col="0">6</td>
+                  <td data-row="4" data-col="1">Female</td>
+                  <td data-row="4" data-col="2">English</td>
+                  <td data-row="4" data-col="3">14.00</td>
+                  <td data-row="4" data-col="4">16.0</td>
+                  <td data-row="4" data-col="5">50</td>
+                </tr>
+                <tr>
+                  <td data-row="5" data-col="0">9</td>
+                  <td data-row="5" data-col="1">Male</td>
+                  <td data-row="5" data-col="2">English</td>
+                  <td data-row="5" data-col="3">8.20</td>
+                  <td data-row="5" data-col="4">15.0</td>
+                  <td data-row="5" data-col="5">31</td>
+                </tr>
+                <tr>
+                  <td data-row="6" data-col="0">12</td>
+                  <td data-row="6" data-col="1">Female</td>
+                  <td data-row="6" data-col="2">English</td>
+                  <td data-row="6" data-col="3">16.97</td>
+                  <td data-row="6" data-col="4">13.5</td>
+                  <td data-row="6" data-col="5">30</td>
+                </tr>
+                <tr>
+                  <td data-row="7" data-col="0">14</td>
+                  <td data-row="7" data-col="1">Female</td>
+                  <td data-row="7" data-col="2">English</td>
+                  <td data-row="7" data-col="3">6.70</td>
+                  <td data-row="7" data-col="4">12.0</td>
+                  <td data-row="7" data-col="5">61</td>
+                </tr>
+                <tr>
+                  <td data-row="8" data-col="0">20</td>
+                  <td data-row="8" data-col="1">Female</td>
+                  <td data-row="8" data-col="2">Other</td>
+                  <td data-row="8" data-col="3">14.00</td>
+                  <td data-row="8" data-col="4">14.0</td>
+                  <td data-row="8" data-col="5">46</td>
+                </tr>
+                <tr>
+                  <td data-row="9" data-col="0">25</td>
+                  <td data-row="9" data-col="1">Male</td>
+                  <td data-row="9" data-col="2">English</td>
+                  <td data-row="9" data-col="3">19.20</td>
+                  <td data-row="9" data-col="4">18.0</td>
+                  <td data-row="9" data-col="5">43</td>
+                </tr>
+                <tr>
+                  <td data-row="10" data-col="0">26</td>
+                  <td data-row="10" data-col="1">Male</td>
+                  <td data-row="10" data-col="2">English</td>
+                  <td data-row="10" data-col="3">7.25</td>
+                  <td data-row="10" data-col="4">11.0</td>
+                  <td data-row="10" data-col="5">17</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</section>
+<section id="quant-bar-graph" class="level2">
+<h2 class="anchored" data-anchor-id="quant-bar-graph">Quant Bar Graph</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Histogram of Wages</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>wages, <span class="at">data =</span> wages_munged, <span class="at">bins =</span> <span class="dv">30</span>, <span class="at">fill =</span> <span class="st">"brown"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_labs</span>(<span class="at">title =</span> <span class="st">"Distribution of Wages"</span>, <span class="at">x =</span> <span class="st">"Wages"</span>, <span class="at">y =</span> <span class="st">"Count"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Canadian-Wages_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Histogram of Education</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>education, <span class="at">data =</span> wages_munged, <span class="at">bins =</span> <span class="dv">20</span>, <span class="at">fill =</span> <span class="st">"blue"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_labs</span>(<span class="at">title =</span> <span class="st">"Distribution of Education Years"</span>, <span class="at">x =</span> <span class="st">"Years of Education"</span>, <span class="at">y =</span> <span class="st">"Count"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Canadian-Wages_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Histogram of Age</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>age, <span class="at">data =</span> wages_munged, <span class="at">bins =</span> <span class="dv">20</span>, <span class="at">fill =</span> <span class="st">"coral"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_labs</span>(<span class="at">title =</span> <span class="st">"Distribution of Age"</span>, <span class="at">x =</span> <span class="st">"Age"</span>, <span class="at">y =</span> <span class="st">"Count"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Canadian-Wages_files/figure-html/unnamed-chunk-10-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="quant-bar-graph-1" class="level2">
+<h2 class="anchored" data-anchor-id="quant-bar-graph-1">Quant Bar Graph</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Bar graph of Sex</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_bar</span>(<span class="sc">~</span>sex, <span class="at">data =</span> wages_munged, <span class="at">fill =</span> <span class="sc">~</span>sex) <span class="sc">%&gt;%</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_labs</span>(<span class="at">title =</span> <span class="st">"Counts of Respondents by Sex"</span>, <span class="at">x =</span> <span class="st">"Sex"</span>, <span class="at">y =</span> <span class="st">"Count"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Canadian-Wages_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Bar graph of Language</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_bar</span>(<span class="sc">~</span>language, <span class="at">data =</span> wages_munged, <span class="at">fill =</span> <span class="sc">~</span>language) <span class="sc">%&gt;%</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_labs</span>(<span class="at">title =</span> <span class="st">"Counts of Respondents by Language"</span>, <span class="at">x =</span> <span class="st">"Language"</span>, <span class="at">y =</span> <span class="st">"Count"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Canadian-Wages_files/figure-html/unnamed-chunk-11-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="quant-log-scale" class="level2">
+<h2 class="anchored" data-anchor-id="quant-log-scale">Quant Log Scale</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Wages by Sex</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_boxplot</span>(sex <span class="sc">~</span> wages, <span class="at">data =</span> wages_munged, <span class="at">fill =</span> <span class="sc">~</span>sex, <span class="at">orientation =</span> <span class="st">"y"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_labs</span>(<span class="at">title =</span> <span class="st">"Wages by Sex"</span>, <span class="at">x =</span> <span class="st">"Wages"</span>, <span class="at">y =</span> <span class="st">"Sex"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Canadian-Wages_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Wages by Language</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_boxplot</span>(language <span class="sc">~</span> wages, <span class="at">data =</span> wages_munged, <span class="at">fill =</span> <span class="sc">~</span>language, <span class="at">orientation =</span> <span class="st">"y"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_labs</span>(<span class="at">title =</span> <span class="st">"Wages by Language"</span>, <span class="at">x =</span> <span class="st">"Wages"</span>, <span class="at">y =</span> <span class="st">"Language"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Canadian-Wages_files/figure-html/unnamed-chunk-12-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Education by Sex</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_boxplot</span>(sex <span class="sc">~</span> education, <span class="at">data =</span> wages_munged, <span class="at">fill =</span> <span class="sc">~</span>sex, <span class="at">orientation =</span> <span class="st">"y"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_labs</span>(<span class="at">title =</span> <span class="st">"Education Years by Sex"</span>, <span class="at">x =</span> <span class="st">"Education (Years)"</span>, <span class="at">y =</span> <span class="st">"Sex"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Canadian-Wages_files/figure-html/unnamed-chunk-12-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>##Data dictionary</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">count</span>(wages_munged)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 1
+      n
+  &lt;int&gt;
+1  3980</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">summarise</span>(wages_munged)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>crosstable<span class="sc">::</span><span class="fu">crosstable</span>(wages_munged)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 21 × 4
+   .id      label    variable   value                 
+   &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;                 
+ 1 rownames rownames Min / Max  1.0 / 7425.0          
+ 2 rownames rownames Med [IQR]  3699.0 [1838.5;5584.2]
+ 3 rownames rownames Mean (std) 3713.1 (2145.2)       
+ 4 rownames rownames N (NA)     3980 (0)              
+ 5 sex      sex      Female     1997 (50.18%)         
+ 6 sex      sex      Male       1983 (49.82%)         
+ 7 language language English    3238 (81.36%)         
+ 8 language language French     259 (6.51%)           
+ 9 language language Other      483 (12.14%)          
+10 wages    wages    Min / Max  2.3 / 49.9            
+# ℹ 11 more rows</code></pre>
+</div>
+</div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

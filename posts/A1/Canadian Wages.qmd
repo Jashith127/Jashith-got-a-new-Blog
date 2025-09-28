@@ -1,5 +1,5 @@
 ---
-title: "Canadian Wages Jash"
+title: "Canadian Wages"
 ---
 
 A data set about Canadian Wages

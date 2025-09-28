@@ -2,11 +2,13 @@
 title: "Classwork1"
 format: html
 ---
+
 ```{r}
 library (tidyverse)
 library (ggformula)
 library (babynames)
 ```
+
 Im gonna search for my name in the USA
 
 ```{r}
@@ -21,4 +23,3 @@ babynames %>% filter (name == "Jashith" | name == "Jash") %>%
             X = "Year",
             y = "No. of Babies ")
 ```
-

@@ -1,0 +1,24 @@
+---
+title: "Classwork1"
+format: html
+---
+```{r}
+library (tidyverse)
+library (ggformula)
+library (babynames)
+```
+Im gonna search for my name in the USA
+
+```{r}
+babynames
+
+```
+
+```{r}
+babynames %>% filter (name == "Jashith" | name == "Jash") %>% 
+  gf_line (n ~ year, color = ~ name) %>% 
+  gf_labs ( title ="Number of Jash & Jashith in the land of the free",
+            X = "Year",
+            y = "No. of Babies ")
+```
+

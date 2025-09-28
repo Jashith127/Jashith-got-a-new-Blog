@@ -1,0 +1,190 @@
+---
+title: "fertility"
+---
+
+```{r}
+library(tidyverse)
+library(mosaic) # Our all-in-one package
+library(skimr) # Looking at data
+library(visdat) # Mapping missing data
+library(naniar) # Missing data visualization and munging
+library(janitor) # Clean the data
+library(tinytable) # Printing Tables for our data
+```
+
+```{r}
+fertility <- readr::read_csv("Data/Fertility.csv")
+
+```
+
+## Glimpsing Fertility
+
+```{r}
+dplyr::glimpse(fertility)
+```
+
+## Checking for missing data
+
+```{r}
+# Take a random sample of 1000 rows for visualization
+fertility_sample <- fertility %>% 
+  dplyr::slice_sample(n = 1000)
+
+# Now visualize missingness on the sample
+visdat::vis_miss(fertility_sample) +
+  ggtitle(label = "Missing Data in Fertility Dataset (Sampled)") +
+  theme(plot.title = element_text(size = 20, hjust = 0.5))
+
+visdat::vis_dat(fertility_sample, sort_type = TRUE, palette = "cb_safe") +
+  labs(
+    title = "Missing Data in Fertility Dataset (Sampled)",
+    subtitle = "Showing Variable Types"
+  ) +
+  theme(
+    plot.title = element_text(size = 20, hjust = 0.5),
+    plot.subtitle = element_text(size = 18, hjust = 0.5)
+  )
+
+```
+
+## Dropping NA
+
+```{r}
+tidyr::drop_na(fertility_sample)
+```
+
+## Cleaning Names
+
+```{r}
+fertility1 <- fertility %>%
+  janitor::clean_names(case = "snake")  # clean column names
+
+fertility1
+
+```
+
+##Getting names
+
+```{r}
+names(fertility_sample)
+
+```
+
+## TinyTable for fertility
+
+```{r}
+fertility_sample %>%
+  head(10) %>%
+  tinytable::tt(caption = "Fertility Dataset (Clean)") %>%
+  tinytable::theme_html(class = "table table-hover table-striped table-condensed") %>%
+  stats::setNames(c(
+    "Row ID", 
+    "More Kids", 
+    "Gender 1", 
+    "Gender 2", 
+    "Age", 
+    "African American", 
+    "Hispanic", 
+    "Other", 
+    "Work"
+  ))
+
+```
+
+## Gender by work status
+
+```{r}
+
+fertility_sample %>%
+  gf_bar(~gender1, fill = ~work, position = "dodge") %>%
+  gf_labs(title = "Plot 3A: Dodged Bar Chart of Gender by Work Status") %>%
+  gf_theme(theme(axis.text.x = element_text(
+    size = 6,
+    angle = 45, hjust = 0.5
+  ))) %>%
+  gf_refine(scale_fill_brewer(palette = "cb_safe"))
+
+```
+
+```{r}
+fertility <- read_csv("data/Fertility.csv")
+```
+
+##  Count of Kids by Age Group
+
+```{r}
+
+fertility_sample %>%
+  # Bin ages into groups of 10 years
+  mutate(age_bin = cut(age,
+                       breaks = seq(15, 55, by = 10),
+                       labels = c("15–24", "25–34", "35–44", "45–54"),
+                       right = FALSE)) %>%
+  gf_bar(~age_bin, fill = ~morekids) %>%
+  gf_labs(title = "Plot 4A: Counts of More Kids by Age ") %>%
+  gf_refine(scale_fill_brewer(palette = "Set6"))
+
+```
+
+## Bar Chart of More Kids by Age Group
+
+```{r}
+fertility_sample %>%
+  # Create age bins
+  mutate(age_bin = cut(age,
+                       breaks = seq(15, 55, by = 10),
+                       labels = c("15–24", "25–34", "35–44", "45–54"),
+                       right = FALSE)) %>%
+  gf_bar(~age_bin,
+         fill = ~morekids,
+         position = "dodge") %>%
+  gf_labs(title = "Plot 2A: Dodged Bar Chart of More Kids by Age Group") %>%
+  gf_refine(scale_fill_brewer(palette = "Set2"))
+```
+
+## Distribution of Age in Fertility Dataset
+
+```{r}
+# Age distribution
+gf_histogram(~age, data = fertility_sample, bins = 20, fill = "coral") %>%
+  gf_labs(title = "Distribution of Age in Fertility Dataset", x = "Age", y = "Count")
+
+```
+
+## Count by work status
+
+```{r}
+# More Kids
+gf_bar(~morekids, data = fertility_sample, fill = ~morekids) %>%
+  gf_labs(title = "Counts by More Kids", x = "More Kids", y = "Count")
+
+# Gender1
+gf_bar(~gender1, data = fertility_sample, fill = ~gender1) %>%
+  gf_labs(title = "Counts by Gender1", x = "Gender 1", y = "Count")
+
+# Work status
+gf_bar(~work, data = fertility_sample, fill = ~work) %>%
+  gf_labs(title = "Counts by Work Status", x = "Work", y = "Count")
+
+```
+
+## Age by work status
+
+```{r}
+# Age by More Kids
+gf_boxplot(morekids ~ age, data = fertility_sample, fill = ~morekids, orientation = "y") %>%
+  gf_labs(title = "Age by More Kids", x = "Age", y = "More Kids")
+
+# Age by Work
+gf_boxplot(work ~ age, data = fertility_sample, fill = ~work, orientation = "y") %>%
+  gf_labs(title = "Age by Work Status", x = "Age", y = "Work")
+
+```
+
+## Data Dictionary
+
+```{r}
+dplyr::count(fertility_sample)
+dplyr::summarise(fertility_sample)
+crosstable::crosstable(fertility_sample)
+```

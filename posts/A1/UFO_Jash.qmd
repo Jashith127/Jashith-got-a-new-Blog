@@ -1,0 +1,223 @@
+---
+title: "UFO"
+---
+
+## Setup R Packages
+
+```{r}
+library(tidyverse)
+library(mosaic) # Our all-in-one package
+library(skimr) # Looking at data
+library(janitor) # Clean the data
+library(naniar) # Handle missing data
+library(visdat) # Visualise missing data
+library(tinytable) # Printing Static Tables for our data
+library(DT) # Interactive Tables for our data
+library(crosstable) # Multiple variable summaries
+```
+
+## Read the Data
+
+```{r}
+ufo_sightings <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2019/2019-06-25/ufo_sightings.csv")
+```
+
+## Viewing the Data
+
+```{r}
+dplyr::glimpse(ufo_sightings)
+```
+
+## Munging
+
+```{r}
+ufo_sightings_modified <- ufo_sightings %>%
+  janitor::clean_names(case = "snake") # clean names
+
+ufo_sightings_modified
+```
+
+## Replacing NA
+
+```{r}
+ufo_sightings_modified1 <- ufo_sightings_modified %>%
+  naniar::replace_with_na_all(condition = ~ .x %in% common_na_numbers) %>%
+  replace_with_na_all(condition = ~ .x %in% common_na_strings)
+
+glimpse(ufo_sightings_modified1)
+```
+
+## Missing Data
+
+```{r}
+visdat::vis_miss(ufo_sightings_modified1)
+visdat::vis_dat(ufo_sightings_modified1, sort_type = TRUE, palette = "cb_safe")
+```
+
+## Removing the gb, au rows
+
+```{r}
+ufo_modified_clean <- ufo_sightings_modified1 %>% 
+ tidyr::drop_na() %>% 
+ filter(c(!country == "gb")) %>% 
+   filter(c(!country == "au"))
+ 
+ufo_modified_clean
+```
+
+## Visualizing to check the missing Data
+
+```{r}
+vis_dat(ufo_modified_clean)
+```
+
+## Data munging
+
+```{r}
+ufo_modified_munged <- ufo_modified_clean %>%
+  mutate(
+    date_time = as.factor(date_time),
+    city_area = as.factor(city_area),
+    state = as.factor(state),
+    country = as.factor(country),
+    ufo_shape = as.factor(ufo_shape),
+    described_encounter_length = as.factor(described_encounter_length),
+    description = as.factor(description),
+    date_documented = as.factor(date_documented),
+    
+  ) %>%
+
+  # arrange the Qual variables first, Quant next
+  dplyr::relocate(where(is.factor))
+
+glimpse(ufo_modified_munged)
+```
+
+## Table Captioning (Title)
+
+```{r}
+library(dplyr)
+library(tinytable)
+
+ufo_modified_munged %>%
+  head(10) %>%
+  tinytable::tt(caption = "UFO Sightings Dataset (Clean)") %>%
+  tinytable::theme_html(class = "table table-hover table-striped table-condensed") %>%
+  style_tt(fontsize = 0.8) %>%
+  stats::setNames(c("Date and Time", "City", "State/Province", "Country", "UFO Shape", "Duration (Text)", "Description", "Date Posted", "Duration (Seconds)", "Latitude", "Longitude"))
+
+```
+
+## Qual Bar Graph (Shape/Country)
+
+```{r}
+ufo_modified_munged %>%
+  gf_bar(~ufo_shape,
+         fill = ~country,
+         position = "dodge") %>%
+  gf_labs(title = "Plot 2A: UFO Sightings by Shape and Country") %>%
+  gf_refine(scale_fill_brewer(palette = "Spectral"))
+```
+
+```{r}
+glimpse(ufo_modified_munged)
+```
+
+## Quant Bar Graph (Year/Country)
+
+```{r}
+library(dplyr)
+library(ggformula)
+library(lubridate)
+
+ufo_modified_munged %>%
+  mutate(
+    year_bin = cut(
+      year(as.Date(date_time)),   
+      breaks = c(1900, 1950, 1970, 1990, 2010, 2015),
+      labels = c("1900-1949", "1950-1969", "1970-1989", "1990-2009", "2010-2014"),
+      include.lowest = TRUE
+    )
+  ) %>%
+  gf_bar(~year_bin,
+         fill = ~country,
+         position = "dodge") %>%
+  gf_labs(title = "Plot 2A: UFO Sightings by Year and Country") %>%
+  gf_refine(scale_fill_brewer(palette = "set2"))
+
+```
+
+## Quant Graph (Duration)
+
+```{r}
+ufo_modified_munged %>%
+  gf_histogram(
+    ~encounter_length,          # histogram x-axis: duration in minutes
+    fill = ~country,            # fill color by country
+    data = .,                   # use ufo_modified dataset
+    bins = 50                   # adjust number of bins
+  ) %>%
+  gf_labs(
+    title = "Plot 3A: UFO Sightings by Duration",
+    caption = "Data: UFO Sightings (TidyTuesday)"
+  )
+
+```
+
+## Log Scale (Quant) Graph
+
+```{r}
+
+ufo_modified_munged %>%
+  gf_boxplot(
+    country ~ encounter_length,       # duration on x-axis, countries on y-axis
+    fill = ~country,              # fill by country
+    orientation = "y"
+  ) %>%
+  gf_refine(
+    scale_x_log10(),              # log scale for duration
+    scale_fill_brewer(palette = "set2")
+  ) %>%
+  gf_labs(
+    y = "Country",
+    x = "Sighting Duration (log scale)",
+    title = "Plot 2C: UFO Sightings Duration by Country (log scale)"
+  )
+
+```
+
+## Quant Graph
+
+```{r}
+
+# Histogram of Latitude
+gf_histogram(~latitude, data = ufo_modified_munged, bins = 30, fill = "lightblue") %>%
+  gf_labs(title = "Distribution of Latitude", x = "Latitude", y = "Count")
+
+# Histogram of Longitude
+gf_histogram(~longitude, data = ufo_modified_munged, bins = 30, fill = "orange") %>%
+  gf_labs(title = "Distribution of Longitude", x = "Longitude", y = "Count")
+
+```
+
+```{r}
+mosaic::inspect(ufo_modified_munged)
+```
+
+```{r}
+skimr::skim(ufo_modified_munged)
+```
+
+```{r}
+dplyr::glimpse(ufo_modified_munged)
+```
+
+```{r}
+dplyr::count(ufo_modified_munged)
+```
+
+```{r}
+dplyr::summarise(ufo_modified_munged)
+dplyr::count(ufo_modified_munged)
+crosstable::crosstable(ufo_modified_munged)
+```

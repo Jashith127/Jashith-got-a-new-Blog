@@ -91,7 +91,7 @@ wages_munged %>%
 
 ```
 
-## Quant Bar Graph
+## Quant Histogram
 
 ```{r}
 # Histogram of Wages
@@ -145,3 +145,4 @@ dplyr::count(wages_munged)
 dplyr::summarise(wages_munged)
 crosstable::crosstable(wages_munged)
 ```
+

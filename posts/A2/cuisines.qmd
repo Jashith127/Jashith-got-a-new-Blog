@@ -1,0 +1,459 @@
+---
+title: "A2 Part 3 cuisines"
+format: html
+author: Aditya Das, Jashith, Manal Nazer
+---
+
+# A2 Part 3 cuisines
+
+A dataset of recipes scraped from Allrecipes.com, containing ingredients, cooking times, nutrition facts, country, ratings, and review counts. The data has been parsed and cleaned to ensure analysis- readiness.
+
+## Data dictionary (to be revised)
+
+A data frame with 2218 rows and 17 variables:
+
+**name** Name of the recipe
+
+**country** The country/region the cuisine is from.
+
+**url** Link to the recipe
+
+**author** Author of the recipe
+
+**date_published** When the recipe was published/updated
+
+**ingredients** The ingredients of the recipe
+
+**calories** Calories per serving fat Fat per serving
+
+**carbs** carbs per serving
+
+**protein** Proteins per serving
+
+**avg_rating** Average rating out of 5 stars
+
+**total_ratings** Number of ratings received
+
+**reviews** Number of written reviews
+
+**prep_time** Preparation time in minutes
+
+**cook_time** Cooking time in minutes
+
+**total_time** Prep + cook time in minutes. Note that this value may not always match the actual total effort required, as other time-related fields (such as refrigeration, marination, fry time, or additional wait periods) have been excluded due to inconsistent availability across recipes
+
+**servings** Number of servings
+
+------------------------------------------------------------------------
+
+## Our questions before performing EDA:
+
+-   How many unique countries are represented? Which countries contribute the most recipes?
+
+-   What are the average, minimum, and maximum values of **calories, fat, carbs, and protein**?
+
+-   Which recipes have the **highest and lowest calories**?
+
+-   Are **newer recipes** (by `date_published`) rated differently from older ones?
+
+-   What is the distribution of **prep_time, cook_time, and total_time**?
+
+-   Which recipes are **quickest** vs **most time-consuming**?
+
+-   Are longer recipes (higher total_time) rated higher or lower on average?
+
+-   Which countries have the **most calorie-dense dishes**?
+
+-   Do some cuisines tend to have **healthier** or **lower-fat** recipes?
+
+-   Are there any noticeable **regional trends** in ratings or cooking times?
+
+------------------------------------------------------------------------
+
+#### Setting up libraries
+
+```{r}
+library(ggformula)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(viridis)
+library(ggridges)
+library(tastyR)
+library(tidyverse)
+library(mosaic) # Our trusted friend
+library(skimr)
+library(ggformula) # Formula interface to ggplot2
+library(vcd) # Michael Friendly's package, Visualizing Categorical
+library(vcdExtra) # Categorical Data Sets
+library(resampledata) # More datasets
+#library(visStatistics) # Comprehensive all-in-one stats viz/test package
+
+library(ggmosaic) # Tidy Mosaic Plots
+library(ggpubr) # Colours, Themes and new geometries in ggplot
+##
+library(janitor) # Data Cleaning and Tidying
+library(visdat) # Visualize whole dataframes for missing data
+library(naniar) # Clean missing data
+library(DT) # Interactive Tables for our data
+library(tinytable) # Elegant Tables for our data
+library(ggrepel) # Repelling Text Labels in ggplot
+library(marquee) # Marquee Text in ggplot
+library(crosstable)
+```
+
+#### Reading and taking a look at the data set:
+
+```{r}
+data(cuisines, package = "tastyR")
+cuisines1 <- cuisines %>% 
+    janitor::clean_names(case = "snake")
+
+dplyr::glimpse(cuisines1)
+cuisines1
+```
+
+#### Inspecting the data:
+
+```{r}
+visdat::vis_dat(cuisines1)
+visdat::vis_miss(cuisines1)
+```
+
+### Observations:
+
+-   Several entries in the **calories**, **fat**, **carbs**, **avg_rating**, **total_ratings**, and **reviews** columns contained missing values. Although removing them could slightly reduce representation across cuisines, the missing data accounted for only about **1.2%** of the dataset, so we chose to drop these rows to maintain data quality and consistency.
+
+### Dropping the NA's:
+
+```{r}
+cuisines2 <- cuisines1 %>% 
+tidyr::drop_na() 
+cuisines2
+```
+
+160 rows were removed out of the 2218 entries through this process.
+
+```{r}
+cuisines2 %>% 
+  dplyr::count(country, sort= TRUE)
+
+cuisines2 %>% 
+summary(country)
+```
+
+### Observations:
+
+-   Of the 49 cuisine types in the dataset, 40 represent countries while 9 represent non-country categories (religious/cultural groups, regional cuisines, and cuisine styles).
+
+-   The original "country" label was misleading since the data includes not just countries, but also religious groups (Jewish), cultural groups (Amish and Mennonite), regional cuisines (Tex-Mex, Southern Recipes), and cuisine styles (Soul Food). We renamed it to "cuisines_type" because users searching for recipes think in terms of cuisine styles rather than geographic or cultural distinctions.
+
+-   The top cuisine types by recipe count are Canadian (66), Chinese (64), Filipino (64), Indian (64), Cuban (63), Russian (63), Soul Food (63), French (61), Australian and New Zealander (60), Cajun and Creole (60), Jewish (60), and Polish (60).
+
+#### renaming country to cuisine_type:
+
+```{r}
+cuisines3 <- cuisines2 %>% 
+dplyr::rename("cuisines_type" = country)
+
+cuisines3
+```
+
+------------------------------------------------------------------------
+
+#### Checking for dates published:
+
+```{r}
+cuisines3 %>% 
+  dplyr::count(date_published)
+```
+
+```{r}
+cuisines3 %>% 
+gf_histogram(~date_published) %>% 
+  gf_labs(title="Distribution of Date Published in the recipes dataset")
+```
+
+```{r}
+cuisines3 %>% 
+  dplyr::summarise(
+    median_date_published = median(date_published, na.rm = T),
+    min_date_published = min(date_published, na.rm=T),
+    max_date_published = max(date_published, na.rm=T))
+
+```
+
+### Observations:
+
+The publication dates range from 2009-02-09 to 2025-07-29, confirming this is a recently scraped dataset. The median date of 2024-07-13 and the histogram distribution indicate that most recipes were either published or collected in mid-2024, likely reflecting when the data was scraped from Allrecipes.com.
+
+------------------------------------------------------------------------
+
+What are the average, minimum, and maximum values of **calories, fat, carbs, and protein**?
+
+```{r}
+cuisines3 %>% 
+  dplyr::summarise(mean_calories = mean(calories, na.rm=T),
+                   min_calories = min(calories, na.rm = T),
+                   max_calories = max(calories, na.rm = T)) 
+
+cuisines3 %>% 
+dplyr::summarise(mean_fat = mean(fat, na.rm=T),
+                   min_fat = min(fat, na.rm = T),
+                   max_fat = max(fat, na.rm = T))
+
+cuisines3 %>% 
+dplyr::summarise(mean_carbs = mean(carbs, na.rm=T),
+                   min_carbs = min(carbs, na.rm = T),
+                   max_carbs = max(carbs, na.rm = T))
+
+cuisines3 %>% 
+dplyr::summarise(mean_protein = mean(protein, na.rm=T),
+                   min_protein = min(protein, na.rm = T),
+                   max_protein = max(protein, na.rm = T))
+
+```
+
+### Observations:
+
+This data set seems to be a diverse recipe collection spanning light to indulgent, with the average recipe being a reasonably balanced, moderate-calorie meal.
+
+The calories span from 3 (likely a condiment, garnish, or data error) to 2,266 calories rich dessert, deep-fried dish, or family-style/party recipe).
+
+0g minimum protein suggests vegetable-based or carb-heavy dishes (pasta, bread) and 135g maximum suggests very protein-focused dishes (likely meat-heavy).
+
+1g minimum carbs likely implies meat/egg-focused dishes and 264g maximum carbs suggests pasta dishes, rice bowls, or baked goods.
+
+0g fat shows fat-free recipes (rare in cooking) and 190g fat shows very rich/fried dishes, cheese-heavy, or desserts with butter/cream.
+
+Overall, the mean values suggest most recipes aim for balanced nutrition, not extreme in any direction.We should be mindful of the outliers: maximum values (2,266 cal, 264g carbs, 190g fat) could skew analysis - these are likely special occasion foods or recipes meant to serve many people. The extremes might actually be total recipe values rather than per-serving, which would explain the wild maximums
+
+------------------------------------------------------------------------
+
+#### We checked for what recipes had 3 calories:
+
+```{r}
+cuisines3 %>% 
+  filter(calories == 3)
+```
+
+From this, we are sure that the dataset contains not only normal portioned dishes but also seasonings and condiments. Could drinks also come under small caloried items?
+
+```{r}
+cuisines3 %>% 
+  filter(grepl("drink|beverage|smoothie|juice|coffee|tea|cocktail|shake|lemonade|agua|lassi", 
+               name, ignore.case = TRUE)) %>% 
+  select(name, cuisines_type, calories) %>% 
+  arrange(calories)
+```
+
+------------------------------------------------------------------------
+
+#### We explored recipe ratings over time:
+
+```{r}
+cuisines3 %>% 
+  gf_point(avg_rating ~ date_published, color = "maroon", alpha = 0.3) %>% 
+  gf_smooth(method = "lm", color = "blue") %>% 
+  gf_labs(title= "Recipe Ratings Over Time",
+          x= "date published",
+          y="average ratings")
+```
+
+### Observations:
+
+The trend line shows ratings starting around 3.5 in 2009 and climbing to around 4.5+ by 2025. There's a clear upward trend over time. Most recipes are highly rated, the vast majority of points cluster between 4.0-5.0 stars. There are very few points below 3.0 stars across any time period. Low ratings are rare outliers. The upward trend could mean:
+
+-   Newer recipes are genuinely better (improved recipe testing?)
+
+-   Only highly-rated recipes get published/kept in recent years
+
+-   Survivorship bias (older poorly-rated recipes may have been removed)
+
+Newer recipes (post-2020) are rated significantly higher than older ones, with the average climbing from \~3.5 to \~4.5+ stars. However, this coincides with a massive increase in recipe volume, so it's worth investigating whether this is a quality improvement or a data collection artifact.
+
+#### Next, we'll check if total_ratings (number of reviews) differs by year
+
+newer recipes might have fewer ratings:
+
+```{r}
+cuisines3 %>% 
+  gf_point(total_ratings ~ date_published, alpha = 0.3, color = "maroon" ) %>% 
+  gf_smooth(method = "lm", color = "blue4") %>% 
+  gf_labs(
+    title = "Do Newer Recipes Have Fewer Ratings?",
+    x = "Date Published",
+    y = "Total Number of Ratings"
+  )
+```
+
+### Observations:
+
+Older recipes have had more time but fewer ratings - This is counterintuitive! One would expect recipes from 2010 to have accumulated more ratings over 15 years, but they have very few. This might suggest that older recipes may be less visible/searchable on the platform or maybe even that the user base was much smaller in earlier years. Older recipes may also have been removed or not imported into current system.
+
+The trend line is misleading here because it's heavily weighted by the massive volume of recent data. The relationship isn't really about "time to accumulate ratings"; it's about when the platform became popular/active.
+
+```{r}
+cuisines3 %>% 
+  filter(total_ratings <= 50) %>% 
+  gf_histogram(~total_ratings, binwidth = 1, color = "seagreen4") %>% 
+  gf_labs(
+    title = "Recipes with 50 or Fewer Ratings",
+    x = "Total Ratings",
+    y = "Number of Recipes"
+  )
+
+cuisines3 %>% 
+  gf_histogram(~total_ratings, color = "skyblue1") %>% 
+  gf_labs(
+    title = " Distribution of total Recipe Ratings",
+    x = "Total Ratings",
+    y = "Number of Recipes"
+  ) 
+```
+
+### Observations:
+
+The vast majority of recipes in this dataset have 10 or fewer ratings, which means their avg_rating might not be very reliable. A recipe with 1 rating of 5 stars looks the same as a recipe with 500 ratings averaging 5 stars, but they're very different in terms of reliability. The earlier "Do Newer Recipes Have Fewer Ratings?" plot might be misleading because it's dominated by these low-count recipes.
+
+```{r}
+cuisines3 %>% 
+  filter(total_ratings >= 10) %>% 
+  gf_point(avg_rating ~ date_published, alpha = 0.3, color = "maroon") %>% 
+  gf_smooth(method = "lm", color = "blue") %>% 
+  gf_labs(
+    title = "Recipe Ratings Over Time (≥10 ratings only)",
+    subtitle = "Filtered for more reliable ratings",
+    x = "Date Published",
+    y = "Average Rating"
+  )
+```
+
+### Observations:
+
+The linear trend line shows a clear upward movement, rising from approximately 4.15 in 2018 to about 4.55 by 2024–2025. Building on this observation, user rating behavior may also be becoming more generous over time.
+
+Most ratings cluster between 4.0 and 5.0, with very few recipes rated below 4.0. One possible explanation is that users are more likely to rate recipes they enjoyed, leading to rating inflation. Another possibility is selection bias: people tend to rate only the recipes they chose to make, which were already appealing to them. The rating system may not effectively differentiate between mediocre and excellent recipes.
+
+#### Filtering for Top Represented Cuisines in the data set:
+
+```{r}
+cuisines3 %>% 
+ gf_bar(~ fct_infreq(cuisines_type) , fill = "steelblue") %>% 
+  gf_theme(axis.text.x = element_text(angle = 90)) %>% 
+gf_labs(
+    x = "Cuisine Type",
+    y = "Number of Recipes",
+    title = "Top Cuisines by Recipe Count"
+  )
+```
+
+```{r}
+top_cuisines <- cuisines3 %>%
+  count(cuisines_type) %>% 
+  filter(n >= 60) %>%
+  pull(cuisines_type)
+
+cuisines3 %>%
+  filter(cuisines_type %in% top_cuisines) %>%
+  mutate(cuisines_type = fct_reorder(cuisines_type, avg_rating, median)) %>%
+  ggplot(aes(x = avg_rating, y = cuisines_type)) +
+  geom_boxplot(fill = "gold") +
+  labs(
+    y = "Cuisine Type",
+    x = "Average Rating",
+    title = "Rating Distribution by Cuisine Type"
+  ) +
+  theme_minimal()
+```
+
+French cuisine seems to be the most popular in this data set, followed by Cajun and Creole, both with very narrow boxes. Almost all the dishes are rated somewhere between 4 and 5 stars.
+
+```{r}
+library(GGally)
+library(dplyr)
+
+# Set theme with a safe font BEFORE making the plot
+theme_set(theme_minimal(base_family = "sans"))
+
+# Then make your plot
+suppressWarnings({
+  GGally::ggpairs(
+    cuisines3 %>% drop_na(),
+    columns = c("calories", "fat", "carbs", "protein", "avg_rating", "total_ratings"),
+    diag = list(continuous = wrap("barDiag", bins = 30)),
+    lower = list(continuous = wrap("smooth", alpha = 0.3, se= FALSE, color="red")),
+    upper = list(continuous = wrap("cor", size = 4)),
+    progress = FALSE,
+    title = "Nutritional Correlations"
+  ) + 
+    theme(text = element_text(family = "sans"))
+})
+
+# Time variables
+suppressWarnings({
+  GGally::ggpairs(
+    cuisines3 %>% tidyr::drop_na(),
+    columns = c("prep_time", "cook_time", "total_time", "servings"),
+    progress = FALSE,
+    diag = list(continuous = wrap("barDiag", bins = 25)),
+    lower = list(continuous = wrap("smooth", alpha = 0.3, se = FALSE, color = "red")),
+    upper = list(continuous = wrap("cor", size = 5)),
+    title = "Recipe Time & Servings Correlations"
+  ) +
+    theme_minimal(base_size = 12)
+})
+```
+
+### Observations:
+
+In the Recipe Time & Servings correlation chart, we find that there is a weak correlation overall between recipe time and servings. Recipes with long prep don't necessarily have long cook times. Recipe timing and serving size are mostly independent variables. A recipe for 2 people could take 15 minutes or 3 hours.
+
+-   In the Nutritional Content Correlations chart, we find much more interesting patterns:
+
+-   calories ↔ fat: 0.867\*\*\* (VERY strong - fat drives calories)
+
+-   calories ↔ protein: 0.711\*\*\* (strong - protein also adds calories)
+
+-   calories ↔ carbs: 0.595\*\*\* (moderate - carbs matter less than fat/protein)
+
+-   fat ↔ protein: 0.573\*\*\* (moderate - dishes high in one tend to be high in the other)
+
+-   avg_rating ↔ total_ratings: 0.087\*\*\* (weak - popular recipes aren't necessarily better rated)
+
+-   Nutrition has almost NO relationship with ratings (all correlations near zero)
+
+Through this, we found out that calorie content is mostly predicted by fat, then protein, then carbs and that people don't rate recipes based on nutritional content.
+
+```{r}
+cuisines3 %>% 
+   filter(cuisines_type %in% c("Canadian", "Chinese","Filipino", "Indian", "Cuban", "Russian")) %>%  # Top 5 for clarity
+ gf_boxplot(reorder(cuisines_type, total_time) ~ log10(total_time), 
+             fill = ~cuisines_type, 
+             orientation = "y", 
+             alpha = 0.5) %>% 
+  gf_facet_wrap(vars(avg_rating)) %>% 
+  gf_refine(scale_fill_brewer(type = "qual", palette = "Dark2")) %>% 
+  gf_labs(
+    title = "Log Cooking Time by Cuisine Type (Faceted by Average Rating)",
+    x = "Log Total Time (minutes)",
+    y = "Cuisine Type (ordered by time)"
+  )
+
+```
+
+Rating doesn't necessarily correlate with cooking time: both quick and lengthy recipes can achieve high ratings. Cuisine-specific patterns persist across ratings; each cuisine maintains its characteristic cooking time profile regardless of rating. **Cubans** have the highest cooking time, followed by **Russian** cuisine. **Chinese and Indian** cuisines tend to cluster at lower cooking times (shorter preparation). **Filipino** appears relatively quick to prepare across rating levels.
+
+------------------------------------------------------------------------
+
+## Conclusion:
+
+This exploratory data analysis of 2,218 recipes from Allrecipes.com revealed a diverse data set spanning 49 cuisine types, publication dates from 2009 to 2025, and a wide nutritional range. After cleaning, only 1.2% of entries were removed due to missing values.
+
+Nutritional patterns show that calories are strongly driven by fat, followed by protein and carbs, while nutrition has almost no relationship with recipe ratings. Recipes range from minimal-calorie condiments to rich, multi-serving dishes, with averages suggesting generally balanced meals.
+
+Over time, average recipe ratings have steadily increased from around 3.5 in 2009 to over 4.5 by 2025, likely reflecting rating inflation or platform evolution rather than drastic quality improvements. Most recipes have few total ratings, making many averages unreliable.
+
+Across cuisines, cooking time varies distinctly: Cuban and Russian dishes are the longest, while Chinese and Filipino recipes are quicker to prepare. However, rating levels remain consistent regardless of cooking duration, indicating that user satisfaction isn’t tied to effort or time spent.
+
+Overall, the dataset captures a rich cross-section of global cooking trends, where nutritional richness, preparation time, and popularity differ by cuisine, but ratings remain uniformly high and largely unaffected by these factors.

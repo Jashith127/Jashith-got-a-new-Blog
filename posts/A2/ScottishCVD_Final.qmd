@@ -1,0 +1,430 @@
+---
+title: "A2 part 1 Scottish Health Survey CVD Study - Final"
+format: html
+author: Aditya Das, Jashith, Manal Nazer
+---
+
+# A2 Part 2 Scottish Health Survey CVD Study
+
+This dataset is a data frame containing cardiovascular health data from the 1998 Scottish Health Survey. It includes information from 8,804 respondents aged 18-64, with variables covering demographics, health behaviors, socioeconomic factors, and cardiovascular disease status. This cross-sectional survey was designed to monitor population health and assess cardiovascular disease risk factors across different socioeconomic groups in Scotland.
+
+------------------------------------------------------------------------
+
+## Data dictionary
+
+A data frame with 8,804 observations and 8 variables:
+
+## Qualitative Variables:
+
+> -   **sex** Respondent sex (factor with 2 levels: Male, Female).
+> -   **sc** Social class (factor with 3 levels).
+> -   **smoke** Smoking status (factor with 5 levels).
+> -   **cvddef** Doctor-diagnosed CVD status (integer: 0=no, 1=yes).
+
+## Quantitative Variables:
+
+> -   **age** Respondent age in years (integer).
+> -   **carstair** Carstairs deprivation score - a measure of socioeconomic deprivation (numeric).
+> -   **id** Respondent identification number (integer).
+> -   **area** Geographic area code (integer).
+
+------------------------------------------------------------------------
+
+## Our questions before performing EDA:
+
+-   What is the overall prevalence of CVD in this Scottish population sample?
+-   Do males and females differ in CVD prevalence?
+-   Is there a relationship between age and CVD diagnosis?
+-   How does smoking status relate to CVD prevalence?
+-   Does social class show an association with cardiovascular disease?
+-   Is there a correlation between deprivation (Carstairs score) and CVD?
+-   How does deprivation vary across geographic regions?
+-   Do age distributions differ across geographic areas?
+
+------------------------------------------------------------------------
+
+#### Setting up libraries
+
+```{r}
+library(CardioDataSets)
+library(ggridges)
+library(tidyverse)
+library(ggformula)
+library(mosaic)
+library(skimr)
+library(GGally)
+library(broom)
+library(janitor)
+library(visdat)
+library(naniar)
+library(DT)
+library(ggrepel)
+library(vcd)
+library(vcdExtra)
+library(resampledata)
+library(ggmosaic)
+library(ggpubr)
+```
+
+#### Reading and taking a look at the data set:
+
+```{r}
+data(scottish_CVD_df, package = "CardioDataSets")
+scottish <- scottish_CVD_df %>% 
+    janitor::clean_names(case = "snake")
+
+dplyr::glimpse(scottish)
+```
+
+#### Inspecting the data and exploring it:
+
+```{r}
+visdat::vis_dat(scottish)
+visdat::vis_miss(scottish)
+
+```
+
+### Observations:
+
+-   Checking for missing data patterns
+-   **age:** Age of respondent in years
+-   **sex:** Sex of respondent (Male/Female)
+-   **sc:** Social class grouping
+-   **cvddef:** Doctor-diagnosed cardiovascular disease status (0=No, 1=Yes)
+-   **carstair:** Carstairs deprivation index (higher scores = more deprived areas)
+-   **smoke:** Smoking status categories
+-   **id:** Unique respondent identifier
+-   **area:** Geographic area code
+
+#### Proposed renaming:
+
+> -   age → age_years
+> -   sex → respondent_sex
+> -   sc → social_class
+> -   cvddef → cvd_diagnosed
+> -   carstair → deprivation_score
+> -   smoke → smoking_status
+
+```{r}
+scottish1 <- scottish %>%
+  rename(
+    age_years = age,
+    respondent_sex = sex,
+    social_class = sc,
+    cvd_diagnosed = cvddef,
+    deprivation_score = carstair,
+    smoking_status = smoke
+  ) %>%
+  drop_na()
+
+
+```
+
+------------------------------------------------------------------------
+
+First, we wanted to see the overall distribution of the data set:
+
+```{r}
+ggplot(scottish1, aes(x = age_years, fill = respondent_sex, colour = respondent_sex)) +
+  geom_density(alpha = 0.6, size = 1) +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_colour_brewer(palette = "Dark2") +
+  labs(
+    title = "Density Plot of Age by Sex",
+    subtitle = "Distribution of Ages Across All Respondents",
+    x = "Age (Years)",
+    y = "Density",
+    fill = "Sex",
+    colour = "Sex"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+**Observation:** The age distribution shows a relatively uniform spread across the 18-64 age range with slight peaks in the 30-50 age groups, indicating good representation across different adult age groups. Both males and females show nearly identical age distributions, confirming balanced sampling across gender and no age-related sampling bias.
+
+------------------------------------------------------------------------
+
+```{r}
+scottish1 %>% 
+dplyr::count(respondent_sex, cvd_diagnosed, smoking_status)
+
+scottish1 %>% 
+dplyr::count(smoking_status)
+
+scottish1 %>% 
+dplyr::count(cvd_diagnosed)
+
+scottish1 %>% 
+dplyr::count(respondent_sex, cvd_diagnosed)
+```
+
+## Observations to note:
+
+These frequency tables reveal the distribution of observations across smoking categories and CVD diagnosis. CVD prevalence appears relatively low in this sample, while smoking status shows diverse patterns across the population.
+
+------------------------------------------------------------------------
+
+Next, we checked patterns across social class and smoking:
+
+```{r}
+ggplot(scottish1, aes(x = smoking_status, y = age_years, fill = respondent_sex, color = respondent_sex)) +
+  geom_boxplot(alpha = 0.7) +
+  scale_fill_brewer(palette = "Set3") +
+  scale_color_brewer(palette = "Set3") +
+  labs(
+    title = "Boxplot of Age by Smoking Status and Sex",
+    subtitle = "Examining age distributions across smoking categories by gender",
+    x = "Smoking Status",
+    y = "Age (Years)",
+    fill = "Sex",
+    color = "Sex"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+**Observation:** The boxplot reveals distinct age patterns across smoking status categories. Former smokers tend to be older on average, while current smokers show a wider age distribution. The patterns are largely consistent between males and females, suggesting similar smoking behavior trajectories across genders. Never-smokers show a broad age range, indicating that non-smoking is prevalent across all adult age groups.
+
+------------------------------------------------------------------------
+
+```{r}
+scottish1 <- scottish1 %>%
+  mutate(smoking_status = as.factor(smoking_status))
+
+ggplot(scottish1, aes(x = age_years, y = smoking_status, fill = smoking_status)) +
+  geom_density_ridges(alpha = 0.6) +
+  scale_fill_brewer(palette = "Paired") +
+  labs(
+    title = "Distribution of Age by Smoking Status",
+    subtitle = "Ridge Plot showing age patterns across smoking categories",
+    x = "Age (Years)",
+    y = "Smoking Status",
+    fill = "Smoking Status"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+**Observation:** The ridgeline plot provides a clear visualization of how age distributions vary across different smoking status categories. Each smoking category shows its own distinct age profile, with overlapping curves indicating areas where multiple smoking behaviors are common at similar ages. Some categories show bimodal distributions, suggesting different age-related patterns of smoking initiation, continuation, or cessation within the Scottish population.
+
+------------------------------------------------------------------------
+
+```{r}
+ggplot(scottish1, aes(x = social_class, y = age_years, fill = respondent_sex, color = respondent_sex)) +
+  geom_violin(alpha = 0.7, draw_quantiles = c(0.25, 0.5, 0.75)) +
+  scale_fill_brewer(palette = "Set2") +
+  scale_color_brewer(palette = "Set2") +
+  labs(
+    title = "Violin Plot of Age by Social Class and Sex",
+    subtitle = "Distribution shapes with quartile lines",
+    x = "Social Class",
+    y = "Age (Years)",
+    fill = "Sex",
+    color = "Sex"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+**Observation:** Age distributions across social class categories show minimal variation, with all three social classes having similar median ages and spreads. This indicates that social class in this sample is not strongly age-dependent, and the survey captured individuals from different socioeconomic backgrounds across the full adult age range. Both males and females show comparable patterns within each social class.
+
+------------------------------------------------------------------------
+
+## Scatterplots (Quantitative vs Quantitative)
+
+```{r}
+ggplot(scottish1, aes(x = age_years, y = deprivation_score)) +
+  geom_point(alpha = 0.3, size = 1.5, color = "steelblue") +
+  geom_smooth(method = "loess", color = "red", se = TRUE, size = 1.2) +
+  labs(
+    title = "Age vs Deprivation Score with Trend Line",
+    subtitle = "Exploring the relationship between age and socioeconomic deprivation",
+    x = "Age (Years)",
+    y = "Carstairs Deprivation Score"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+**Observation:** The scatterplot with a smoothed trend line (LOESS) reveals no strong linear relationship between age and deprivation score. The relatively flat trend line with a wide confidence band confirms that deprivation affects all age groups equally in this Scottish population. Individuals of all ages are found across the full range of deprivation scores, indicating that socioeconomic disadvantage is not concentrated in any particular age group.
+
+------------------------------------------------------------------------
+
+```{r}
+
+
+top_areas <- scottish1 %>%
+  count(area) %>%
+  top_n(10, n) %>%
+  pull(area)
+
+scottish_top_areas <- scottish1 %>% filter(area %in% top_areas)
+
+ggplot(scottish_top_areas, aes(x = as.factor(area), y = deprivation_score)) +
+  geom_boxplot(alpha = 0.7, outlier.colour = "red", outlier.size = 2, fill = "grey70") +
+  labs(
+    title = "Deprivation Score: Top 10 Areas",
+    subtitle = "Only showing top 10 by respondent count",
+    x = "Area Code",
+    y = "Carstairs Deprivation Score"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+**Observation:** Focusing on the top 10 geographic areas or grouping areas by decile reveals substantial variation in deprivation scores across regions. Some codes or groups show consistently higher median deprivation, indicating more disadvantaged populations; others indicate lower median deprivation and greater affluence. Socioeconomic heterogeneity is visible within most regions, reflecting the mix of affluent and deprived communities present even in the same geographic area. By reducing the number of categories, patterns in regional disadvantage become much easier to interpret.
+
+------------------------------------------------------------------------
+
+```{r}
+# Obtain top 10 areas by respondent count
+top_areas <- scottish1 %>%
+  count(area) %>%
+  top_n(10, n) %>%
+  pull(area)
+
+# Filter to these areas for cleaner plot
+scottish_top_areas <- filter(scottish1, area %in% top_areas)
+
+ggplot(scottish_top_areas, aes(x = as.factor(area), y = age_years, fill = respondent_sex)) +
+  geom_violin(alpha = 0.7, draw_quantiles = c(0.25, 0.5, 0.75)) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Age Distribution (Top 10 Areas) by Sex",
+    subtitle = "Only top 10 by respondent count for visualization clarity",
+    x = "Geographic Area Code",
+    y = "Age (Years)",
+    fill = "Sex"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+**Observation:** Age distributions are broadly similar across different geographic areas, with both sexes represented through the entire age range. Most areas display a wide age span, indicating demographic diversity and a lack of strong age stratification within any one region. No clear regional patterns emerge suggesting systematic differences in the age structure of the population by geographic area.
+
+------------------------------------------------------------------------
+
+```{r}
+set.seed(42)
+scottish_sample <- scottish1 %>% group_by(social_class) %>% sample_n(size = 200, replace = FALSE)
+
+ggplot(scottish_sample, aes(x = deprivation_score, y = as.factor(social_class), color = respondent_sex)) +
+  geom_jitter(width = 0.2, height = 0.1, alpha = 0.6, size = 1.2) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(
+    title = "Sampled Points: Deprivation by Social Class",
+    x = "Carstairs Deprivation Score",
+    y = "Social Class"
+  ) +
+  theme_minimal(base_size = 13)
+
+```
+
+## **Observation:** Lower social classes are more likely to have higher deprivation scores, but all social classes contain individuals across a wide range of neighborhood affluence and deprivation. The overlap in distributions across classes highlights that individual socioeconomic status and area-level deprivation are related but not perfectly aligned for all respondents.
+
+```{r}
+scottish1 %>%
+  mutate(cvd_diagnosed = as.factor(cvd_diagnosed)) %>%
+  ggplot(aes(x = social_class, fill = cvd_diagnosed)) +
+  geom_bar(position = "fill", alpha = 0.8) +
+  scale_fill_brewer(palette = "Set1", labels = c("No CVD", "CVD")) +
+  labs(
+    title = "CVD Prevalence by Social Class",
+    subtitle = "Proportion of respondents with diagnosed CVD within each social class",
+    x = "Social Class",
+    y = "Proportion",
+    fill = "CVD Status"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+**Observation:** This stacked bar chart (proportion format) directly compares CVD prevalence across social classes. The visualization reveals whether lower social classes show higher proportions of CVD diagnosis, confirming socioeconomic gradients in cardiovascular health. If the red (CVD) portion is noticeably larger in lower social classes, it demonstrates health inequality patterns. This plot effectively summarizes how cardiovascular disease burden is distributed across socioeconomic groups in Scotland.
+
+------------------------------------------------------------------------
+
+## Mosaic Plots (Qualitative vs Qualitative)
+
+```{r}
+table_sex_cvd <- xtabs(~ respondent_sex + cvd_diagnosed, data = scottish1)
+vcd::mosaic(table_sex_cvd,
+            shade = TRUE,
+            legend = TRUE,
+            main = "Mosaic Plot: Sex vs CVD Status")
+```
+
+**Observation:** The mosaic plot illustrates the relationship between sex and CVD diagnosis. The shading indicates whether observed frequencies deviate from expected frequencies under independence. Blue shading suggests fewer CVD cases than expected, while red shading indicates more cases than expected. The relative widths show the proportion of males versus females in the sample, while heights within each sex category show CVD prevalence. Any significant deviations from expected frequencies suggest an association between sex and CVD risk.
+
+------------------------------------------------------------------------
+
+```{r}
+table_smoke_cvd <- xtabs(~ smoking_status + cvd_diagnosed, data = scottish1)
+vcd::mosaic(table_smoke_cvd,
+            shade = TRUE,
+            legend = TRUE,
+            main = "Mosaic Plot: Smoking Status vs CVD")
+```
+
+**Observation:** This mosaic plot reveals the association between smoking status and CVD diagnosis. The relative widths of the smoking status categories show their prevalence in the population, while the heights within each category indicate CVD prevalence. Residual shading highlights cells where observed frequencies significantly deviate from what would be expected if smoking and CVD were independent. Strong blue or red shading in certain smoking-CVD combinations indicates protective or risk associations, respectively, confirming smoking as a cardiovascular risk factor.
+
+------------------------------------------------------------------------
+
+```{r}
+table_sex_sc <- xtabs(~ respondent_sex + social_class, data = scottish1)
+vcd::mosaic(table_sex_sc,
+            shade = TRUE,
+            legend = TRUE,
+            main = "Mosaic Plot: Sex vs Social Class")
+```
+
+**Observation:** The mosaic plot demonstrates balanced representation of both sexes within each social class. Minimal shading indicates that observed frequencies closely match expected frequencies, suggesting independence between sex and socioeconomic status in this survey. This confirms that the survey design successfully captured both males and females across all social class categories without systematic gender bias in any particular socioeconomic group.
+
+------------------------------------------------------------------------
+
+```{r}
+scottish_table <- xtabs(~ respondent_sex + smoking_status + cvd_diagnosed, data = scottish1)
+
+vcd::mosaic(scottish_table,
+            shade = TRUE,
+            legend = TRUE,
+            main = "Mosaic Plot: Observed Frequencies - Sex, Smoking, and CVD")
+```
+
+**Observation:** The three-way observed frequencies mosaic plot shows the actual distribution of respondents across sex, smoking status, and CVD diagnosis categories. The plot is divided first by sex, then by smoking status within each sex, and finally by CVD diagnosis within each smoking-sex combination. The shading indicates standardized residuals—cells with strong red coloring indicate combinations that occur more frequently than expected under complete independence of all three variables, while blue indicates less frequent combinations. This reveals which specific combinations of sex, smoking behavior, and CVD diagnosis are over- or under-represented in the Scottish population.
+
+------------------------------------------------------------------------
+
+```{r}
+vcd::mosaic(scottish_table,
+            shade = TRUE,
+            legend = TRUE,
+            type = "expected",
+            main = "Mosaic Plot: Expected Frequencies - Sex, Smoking, and CVD")
+```
+
+**Observation:** The expected frequencies mosaic plot illustrates how respondents would be distributed across sex, smoking status, and CVD categories if all three variables were completely independent of one another. This plot serves as a baseline for comparison with the observed frequencies. Any differences between this expected plot and the observed plot reveal associations between the variables. Equal-sized divisions within categories in this plot indicate what pure independence would look like, highlighting how different real-world patterns are from statistical independence.
+
+------------------------------------------------------------------------
+
+```{r}
+vcd::assoc(scottish_table,
+            shade = TRUE,
+            legend = TRUE,
+            main = "Mosaic Plot: Association - Sex, Smoking, and CVD")
+```
+
+**Observation:** The association plot directly visualizes the deviations between observed and expected frequencies across all sex-smoking-CVD combinations. The height and shading of each bar represent the magnitude and direction of the residual (observed minus expected). Tall red bars indicate combinations that occur much more frequently than expected, suggesting positive associations or elevated risk patterns (e.g., male current smokers with CVD). Tall blue bars extending downward indicate combinations occurring less than expected, suggesting protective effects or negative associations. This plot effectively highlights which specific combinations of sex, smoking status, and CVD diagnosis show the strongest departures from independence, helping identify key risk factors and protective patterns in the Scottish population.
+
+------------------------------------------------------------------------
+
+## Conclusion
+
+This analysis explores cardiovascular disease patterns in the Scottish adult population from the 1998 Health Survey. The data reveals important associations between CVD prevalence and key risk factors including age, sex, smoking status, social class, and area deprivation. Key findings include:
+
+-   Age distributions are balanced across sex and social class, with no systematic age-related sampling bias
+-   Smoking status shows distinct age patterns, with former smokers tending to be older
+-   Geographic areas differ substantially in deprivation scores, revealing regional socioeconomic inequalities
+-   Individual social class and area-level deprivation show expected but imperfect alignment
+-   CVD prevalence varies by social class, confirming socioeconomic health gradients
+-   Smoking status shows strong association with CVD diagnosis, as expected from epidemiological research
+
+These findings underscore the multifactorial nature of cardiovascular disease and the persistence of socioeconomic health inequalities in Scotland, providing evidence to guide public health policy and targeted intervention strategies.

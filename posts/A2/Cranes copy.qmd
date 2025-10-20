@@ -1,0 +1,151 @@
+---
+title: "A2 part 4 Migration Map (1000 Cranes Kazhakhstan) "
+format: html
+author: Aditya Das, Jashith, Manal Nazer
+---
+
+# A2 part 4 Migration Map (1000 Cranes Kazhakhstan)
+
+For this assignment, we explored the dataset *“1000 Cranes – Southern Kazakhstan,”* which records the movements of the **Demoiselle Crane (*Anthropoides virgo*)**. The dataset provides a detailed look into one of the world’s most fascinating migration systems: a journey that connects breeding grounds in Central Asia to wintering areas in the Indian subcontinent. By mapping their routes and observing their stopovers, we aimed to understand how these cranes navigate diverse landscapes and international borders in response to seasonal changes.
+
+Demoiselle cranes often breed in *Ukraine, Russia, Kazakhstan, Mongolia, China and Turkey*, migrating through *Uzbekistan, Kyrgyzstan, Tajikistan, Afghanistan, Pakistan, Iran, Iraq, Cyprus, Saudi Arabia, Tibet (China), Turkmenistan, Azerbaijan* and *Egypt* and winter in *India, Pakistan, Sudan, Chad, or other Sahel/Northeast Africa.*
+
+The **breeding grounds** of the cranes mapped in this dataset are *Kazhakhstan*and*China*. **Migration/Stop over** countries include *Uzbekistan, Kyrgyzstan, Tajikistan* and *Afghanistan*. **Wintering Grounds** include Pakistan and India- notably Rajasthan and Gujarat.
+
+#### Setting up the libraries:
+
+```{r}
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+# Run this in your console first
+# devtools::install_github("ropensci/rnaturalearthhires")
+library(rnaturalearthhires)
+
+# Plotting Maps
+library(tidyverse) # Maps using ggplot() + geom_sf()
+library(ggformula) # Maps using gf_sf()
+library(tmap) # Thematic Maps, static and interactive
+library(tmaptools)
+library(tmap.mapgl)
+library(osmdata) # Fetch map data from osmdata.org
+library(sfheaders) # Handcrafted Map data
+## Interactive Maps
+library(leaflet) # interactive Maps
+library(leaflet)
+library(leaflet.providers)
+library(leaflet.extras)
+library(threejs) # Globe maps in R. Part of the htmlwidgets family of packages
+
+# For Spatial Data Frame Processing
+library(sf)
+```
+
+#### Reading in the data:
+
+```{r}
+crane_lines <- st_read("C:/Users/Waddles-PC/Documents/Goofy ah class FOESDA/Jashith got a new Blog/posts/A2/1000 Cranes. Southern Kazakhstan. copy/lines.shp")
+
+crane_points <- st_read("C:/Users/Waddles-PC/Documents/Goofy ah class FOESDA/Jashith got a new Blog/posts/A2/1000 Cranes. Southern Kazakhstan. copy/points.shp")
+
+```
+
+#### Let's see what the points and lines look like
+
+```{r}
+print(crane_lines)
+plot(crane_lines)
+
+print(crane_points)
+plot(crane_points)
+```
+
+#### Plotting the above onto the world map:
+
+```{r}
+data("World")
+
+migration_countries <- World %>%
+  filter(iso_a3 %in% c(
+    "KAZ",  "UZB",  "KGZ",  "TJK",  "AFG",  
+    "PAK",  "IND", "CHN"
+  ))
+
+# Plot
+ggplot() +
+  geom_sf(data = migration_countries, fill = "lightblue", color = "black") +
+  geom_sf(data = crane_lines, aes(color = name), size = 0.9) +
+  geom_sf(data = crane_points, aes(color = ind_ident), size = 2, alpha = 0.2) +  # Points
+  labs(title = "Migratory Paths of Anthropoides virgo",
+       x = "Longitude", y = "Latitude")
+```
+
+#### Zoomed in version for a better look:
+
+```{r}
+bbox <- st_bbox(crane_points)
+
+ggplot() +
+  geom_sf(data = migration_countries, fill = "lightblue", color = "black") +
+   geom_sf(data = crane_lines, aes(color = name), size = 0.8) +
+  geom_sf(data = crane_points, aes(color = ind_ident), size = 2, alpha = 1) +
+  labs(
+    title = "Anthropoides virgo Crane Migration Countries",
+    x = "Longitude", 
+    y = "Latitude"
+  ) +
+  coord_sf(xlim = c(bbox["xmin"] - 2, bbox["xmax"] + 2),  
+           ylim = c(bbox["ymin"] - 2, bbox["ymax"] + 2)) +
+scale_color_viridis_d(option = "inferno")
+  theme_bw()
+```
+
+#### What do the individual migration tracks look like?
+
+```{r}
+ggplot() +
+  geom_sf(data = migration_countries, fill = "lightblue1", color = "black") +
+  geom_sf(data = crane_lines, color = "maroon", size = 0.8) +
+  geom_sf(data = crane_points, color = "coral", size = 1) +
+  coord_sf(xlim = c(bbox["xmin"] - 5, bbox["xmax"] + 5),  
+           ylim = c(bbox["ymin"] - 5, bbox["ymax"] + 5)) +
+  facet_wrap(~ind_ident) +
+  labs(title = "Individual Demoiselle Crane Migration Tracks") +
+  theme_minimal()
+```
+
+#### Lets try plotting individual migration but for speed:
+
+```{r}
+ggplot() +
+  geom_sf(data = migration_countries, fill = "lightblue1", color = "black") +
+  geom_sf(data = crane_lines, color = "maroon", size = 0.8) +
+  geom_sf(data = crane_points, aes(color = speed), size = 1) +
+  coord_sf(xlim = c(bbox["xmin"] - 5, bbox["xmax"] + 5),  
+           ylim = c(bbox["ymin"] - 5, bbox["ymax"] + 5)) +
+  facet_wrap(~ind_ident) +
+  labs(title = "Individual Demoiselle Crane Migration Tracks by Speed") +
+  scale_color_viridis_c(option = "magma") +
+  theme_minimal()
+```
+
+#### Lets try plotting individual migration for latitude:
+
+```{r}
+ggplot() +
+  geom_sf(data = migration_countries, fill = "lightblue1", color = "black") +
+  geom_sf(data = crane_lines, color = "cadetblue", size = 0.8) +
+  geom_sf(data = crane_points, aes(color = lat), size = 1) +
+  coord_sf(xlim = c(bbox["xmin"] - 5, bbox["xmax"] + 5),   
+           ylim = c(bbox["ymin"] - 5, bbox["ymax"] + 5)) +
+  facet_wrap(~ind_ident) +
+  labs(title = "Individual Demoiselle Crane Migration Tracks by Latitude") +
+scale_color_viridis_c(option = "inferno") +
+  theme_minimal()
+```
+
+------------------------------------------------------------------------
+
+### Conclusion:
+
+Kazakhstan and China are main breeding regions, Uzbekistan, Kyrgyzstan, Tajikistan, and Afghanistan are used as migratory stopovers, and Pakistan/India are vital wintering grounds for the Demoiselle Crane.

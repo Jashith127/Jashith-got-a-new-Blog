@@ -1,0 +1,380 @@
+---
+title: "A2 part 2 Absenteeism (DataSetsVerse, EducationR)"
+format: html
+author: Aditya Das, Jashith, Manal Nazer
+---
+
+# A2 Part 2 Absenteeism (DataSetsVerse, EducationR)
+
+This dataset, absenteeism_tbl_df, is a tibble containing information about absenteeism from school and certain demographic characteristics of children in rural New South Wales, Australia. The dataset includes data from 146 randomly sampled students during a particular school year, providing insights into the relationships between absenteeism and variables such as ethnicity, sex, age group, and learning categories.
+
+------------------------------------------------------------------------
+
+## Data dictionary
+
+A tibble with 146 observations and 5 variables:
+
+## Qualitative Variables:
+
+> -   **ethnicity** Ethnicity of the student (factor with 2 levels).
+> -   **sex** Sex of the student (factor with 2 levels).
+> -   **grade_group** Age group of the student via grade levels (factor with 4 levels).
+> -   **learning_pace** Learning category of the student, e.g., slow learner or average student (factor with 2 levels).
+
+## Quantitative Variables:
+
+> -   **days_absent** Number of days the student was absent from school (integer).
+
+------------------------------------------------------------------------
+
+## Our questions before performing EDA:
+
+-   What is the overall distribution of absenteeism?
+-   Do students from different ethnicities show different absenteeism patterns? Is one group more frequently absent than the other?
+-   Is there a difference in absenteeism between male and female students?
+-   Does gender distribution differ across learning or age groups? How does absenteeism vary across age groups (F0, F1, F2, F3)?
+-   Are older or younger students more likely to be absent? Are slow learners (SL) absent more often than average learners (AL)?
+-   Is the absenteeism pattern consistent across sexes and ethnicities?
+-   Is there an interaction between lrn and age on absenteeism?
+-   Do female slow learners differ from male slow learners in absenteeism?
+-   What’s the average number of days absent for each group (by sex, eth, lrn, age)? Which combination of factors corresponds to the highest absenteeism?
+
+------------------------------------------------------------------------
+
+#### Setting up libraries
+
+```{r}
+library(DataSetsVerse)
+library(ggridges)
+library(tidyverse) # Tidy data processing and plotting
+library(ggformula) # Formula based plots
+library(mosaic) # Our go-to package
+library(skimr) # Another Data inspection package
+library(GGally) # Corr plots
+library(broom) # Clean reports from Stats / ML outputs
+library(devtools)
+# devtools::install_github("rpruim/Lock5withR")
+library(Lock5withR) # Datasets
+library(easystats) # Easy Statistical Analysis and Charts
+library(correlation) # Different Types of Correlations
+library(janitor) # Data cleaning and tidying package
+library(visdat) # Visualize whole dataframes for missing data
+library(naniar) # Clean missing data
+library(DT) # Interactive Tables for our data
+library(tinytable) # Elegant Tables for our data
+library(ggrepel) # Repelled Text Labels in ggplot
+library(marquee) # Marquee Text Labels in ggplot
+library(correlation)
+library(tidyverse)
+library(mosaic) # Our trusted friend
+library(skimr)
+library(ggformula) # Formula interface to ggplot2
+library(vcd) # Michael Friendly's package, Visualizing Categorical
+library(vcdExtra) # Categorical Data Sets
+library(resampledata) # More datasets
+# library(visStatistics) # Comprehensive all-in-one stats viz/test package
+library(ggmosaic) # Tidy Mosaic Plots
+library(ggpubr) # Colours, Themes and new geometries in ggplot
+library(janitor) # Data Cleaning and Tidying
+library(visdat) # Visualize whole dataframes for missing data
+library(naniar) # Clean missing data
+library(DT) # Interactive Tables for our data
+library(tinytable) # Elegant Tables for our data
+library(ggrepel) # Repelling Text Labels in ggplot
+library(marquee) # Marquee Text in ggplot
+library(tmap)
+```
+
+#### Reading and taking a look at the data set:
+
+```{r}
+data(absenteeism_tbl_df, package = "educationR")
+absenteeism <- absenteeism_tbl_df %>% 
+    janitor::clean_names(case = "snake")
+
+dplyr::glimpse(absenteeism)
+```
+
+#### Inspecting the data and exploring it:
+
+```{r}
+visdat::vis_dat(absenteeism)
+visdat::vis_miss(absenteeism)
+
+absenteeism
+```
+
+### Observations:
+
+-   no missing data
+
+-   **ethnicity (eth):** Contains two categories - "A" for Aboriginal students and "N" for Non-Aboriginal students.
+
+-   **age**: Ranges from F0 to F3, representing internal codes likely based on grade levels. Based on external data from NSW government sites, this dataset may capture primary school children aged 5-9 years. To maintain consistency with the dataset's coding system, we'll retain the F0-F3 classification.
+
+-   **Learning category (lrn)**: Indicates whether a student is classified as "SL" (Slow Learner) or "AL" (Average Learner).
+
+-   **days**: Represents the total number of days the student was absent from school during the observation period
+
+#### Proposed renaming:
+
+> -   age → grade_group (more accurately reflects the F0-F3 coding system)
+> -   lrn → learning_pace (clearer descriptor of what the variable measures)
+> -   days → days_absent (clearly shows these are absence days)
+> -   eth → ethnicity for clarity
+
+```{r}
+absenteeism1 <- absenteeism %>%
+  rename("ethnicity" = eth) %>%
+  rename("learning_pace" = lrn) %>%
+  rename("days_absent" = days) %>% 
+  rename("grade_group" = age) 
+
+absenteeism1
+  
+```
+
+First, we wanted to see the overall distribution of the data set:
+
+```{r}
+ggplot(absenteeism1, aes(x = days_absent)) +
+  geom_density(fill = "skyblue", alpha = 0.5) +
+  labs(
+    title = "Density Plot of Days Absent",
+    subtitle = "Distribution of Absenteeism Across All Students",
+    x = "Days Absent",
+    y = "Density"
+  ) +
+  theme_minimal(base_size = 13)
+
+absenteeism1 %>% 
+  gf_histogram(~days_absent, fill = "pink") %>% 
+  gf_labs(title = "Histogram Plot of Days Absent",
+    subtitle = "Distribution of Absenteeism Across All Students",
+    x = "Days Absent",
+    y = "count")
+```
+
+From the above plots, we see a rightpskewed distribution. Most students cluster at the lower end (0-15 days absent). A long tail extends to the right, with some students having very high absences (up to \~80 days). This suggests most students have good attendance, but a small group has chronic absenteeism. One hypothese is that the histogram bins suggests different patterns of absenteeism (e.g., occasional illness vs. chronic issues or even other causes).
+
+Questions this raises: *Who are the extreme cases? Are the students with 60-80 days absent concentrated in specific demographic groups (ethnicity, learning pace, grade_group, sex)?*
+
+```{r}
+absenteeism1 %>%
+  gf_violin(ethnicity ~ days_absent, fill = ~sex) %>%
+  gf_labs(title = "Distribution of Absenteeism Across Ethnicities and Sex")
+```
+
+In the Violin plot, we see that the distribution for Aboriginal females show dramatically more variability than Non-Aboriginal females. For the males, we see more similar patterns across ethnicities, though Aboriginal males have slightly wider spread. Aboriginal students show much greater variability (wider violins). Non-Aboriginal students have more concentrated, predictable attendance patterns.
+
+*What drives the huge variability in Aboriginal female attendance? Some attend very well, others miss extensively.*
+
+```{r}
+
+absenteeism1 %>% 
+  gf_histogram(~days_absent) %>% 
+  gf_facet_wrap(~ethnicity) %>%
+  gf_labs(
+    title = "Distribution of Days Absent by Ethnicity",
+    subtitle = "Comparing absenteeism patterns between Aboriginal and Non-Aboriginal students",
+    x = "Days Absent",
+    y = "Counts"
+  )
+
+absenteeism1 %>% 
+  gf_density(~days_absent, color = ~ethnicity) %>%
+  gf_labs(
+    title = "Density Distribution of Days Absent by Ethnicity",
+    subtitle = "Overlapping density curves showing absenteeism patterns",
+    x = "Days Absent",
+    y = "Density"
+  )
+```
+
+The histogram confirms that Aboriginal students have a more dispersed, unpredictable attendance pattern, while Non-Aboriginal students follow a more concentrated, consistent pattern (most cluster at very low absences). The shape difference suggests differing attendance dynamics between ethnic groups.
+
+*Why do Non-Aboriginal students show more homogeneous patterns? More stable circumstances? Better support systems?*
+
+```{r}
+absenteeism1 %>% 
+dplyr::count(ethnicity, sex, grade_group, learning_pace)
+
+absenteeism1 %>% 
+dplyr::count(grade_group)
+
+absenteeism1 %>% 
+dplyr::count(learning_pace)
+
+absenteeism1 %>% 
+dplyr::count(grade_group, learning_pace)
+```
+
+## Observation to note:
+
+F3 (33 entries) comprises of only Average Learner Students.
+
+We could see how many average and slow learners exist in each ethnicity.
+
+```{r}
+absenteeism1 %>% 
+
+  gf_bar(~ethnicity,
+    fill = ~learning_pace,
+    position = "dodge") %>%
+  gf_labs(title = "Distribution of Average and Slow Learners Across Ethnicities") %>% 
+  gf_facet_wrap(~sex)
+```
+
+```{r}
+absenteeism1 %>% 
+dplyr::count(ethnicity, sex, learning_pace)
+```
+
+Learning pace classifications are quite evenly distributed for females regardless of ethnicity.
+
+Males have proportionally fewer slow learners than females. Both ethnic groups show similar patterns (more AL than SL), but Aboriginal males have a slightly larger gap.
+
+*Why are more males classified as Average Learners compared to females? Is this a real educational difference, or could there be bias in how learning pace is assessed?*
+
+------------------------------------------------------------------------
+
+Next, we checked whether students from different ethnicities showed different absenteeism patterns:
+
+```{r}
+absenteeism1 %>% 
+  gf_boxplot(ethnicity~days_absent, orientation = "y", color =~ learning_pace) %>% 
+  gf_labs(title="Absenteeism Patterns Across Ethnicity and Learning Pace",
+          subtitle="Faceted by sex to examine gender differences") %>% 
+    gf_facet_wrap(~sex)
+```
+
+------------------------------------------------------------------------
+
+To get a better idea on the impact of ethnicity and sex on days of absence:
+
+```{r}
+absenteeism1 %>%
+  gf_jitter(ethnicity ~ days_absent, 
+            color = ~sex,
+            width = 0, 
+            height = 0.2,
+            alpha = 0.9) %>%
+  gf_summary(fun.data = "mean_se",
+             geom = "pointrange", 
+             size = 0.8, 
+             color = "black") %>% 
+  gf_labs(title="Student Absenteeism by Ethnicity and Gender (Mean ± SE)")
+```
+
+Aboriginal students have slightly higher average absenteeism (\~20 days) compared to non-Aboriginal students (\~15 days), though non-Aboriginal students show greater variability with more extreme outliers (40-80+ days absent). Gender has minimal impact on absenteeism patterns within either ethnic group. The majority of students across all groups are absent 0-22 days, with the mean and standard error clearly displayed for easy comparison.
+
+```{r}
+absenteeism1 %>%
+  gf_boxplot(grade_group ~ days_absent,
+             fill = ~sex,
+             orientation = "y",
+             alpha = 0.5) %>%
+  gf_facet_grid(learning_pace ~ ethnicity) %>%
+  gf_refine(scale_fill_brewer(type = "qual", palette = "Set1")) %>%
+  gf_labs(
+    title = "Absenteeism by Grade, Learning Pace, Sex, and Ethnicity",
+    x = "Days Absent",
+    y = "Grade Group"
+  )
+```
+
+Average learners had generally lower absences across all groups. The median is also typically under 20 days for most groups. Slow learners, on the other hand, had dramatically higher absences, especially for Aboriginal females in F2 (median \~30-40 days, extends to 80+ days) and Non-Aboriginal males in F0 (huge spread, median \~18 days, extends to 60+ days). This difference appears across almost every category, suggesting a strong link between learning pace and attendance.
+
+With regards to ethnicity patterns, Aboriginal students showed greater variation, especially among slow learners. F2 Female slow learners had exceptionally high absences while Aboriginal male average learners (F2) also showed notable absences. For Non-Aboriginal Average Learning Students, the distribution was more concentrated. Non-Aboriginal male Slow Learners in F0 show unusually high absences (40+ days median). What is also interesting here is how in F3, Non-Aboriginal Average Learning male Students had a median absence range of 20+ and extending to 60+. Can't be compared to SL as there is no data for the same.
+
+Across grade levels, absences tend to rise slightly as students move up, but slow learners remain irregular regardless of grade. Gender differences are smaller but visible in certain cases, such as SL Aboriginal females in F2 and SL Non-Aboriginal males in F0, both of whom show higher absences than their counterparts.
+
+In short, slow learners (especially Aboriginal females in F2) are the most vulnerable group, while average learners in lower grades show the best attendance. Thus, we can say that Students classified as Slow Learners miss significantly more school.
+
+**This raises an important question:** *Are they slow learners because they miss school, or or do they fall behind because of frequent absences?*
+
+------------------------------------------------------------------------
+
+```{r}
+absenteeism1 %>%
+  gf_density_ridges(grade_group ~ days_absent, 
+                    fill = ~grade_group, 
+                    alpha = 0.5) %>%
+  gf_refine(scale_fill_brewer(
+    name = "Grade Group",
+    palette = "Spectral"
+  )) %>%
+  gf_labs(
+    title = "Distribution of Days Absent by Grade Level",
+    subtitle = "Ridge Plot showing absenteeism patterns across grades",
+    x = "Days Absent",
+    y = "Grade Group")
+```
+
+Absenteeism patterns vary significantly by grade level, with younger students (F0) showing more consistent attendance and older students (F1-F3) displaying greater variability.
+
+```{r}
+absenteeism1 %>%
+  gf_violin( grade_group ~ days_absent, 
+            fill = ~grade_group, 
+            colour = ~grade_group, 
+            alpha = 0.5,
+            draw_quantiles = c(0.25, 0.50, 0.75)) %>%
+  gf_facet_grid(sex ~ ethnicity,
+                labeller = labeller(
+                  sex = c(F = "Female", M = "Male"),
+                  ethnicity = c(A = "Aboriginal", N = "Non-Aboriginal")
+                )) %>%
+  gf_labs(
+    title = "Days Absent by Grade Group",
+    subtitle = "Faceted by Sex and Ethnicity with quartile lines",
+    x = "Grade Group",
+    y = "Days Absent"
+  ) %>%
+  gf_theme(theme(axis.text.x = element_text(angle = 45, hjust = 1)))
+
+absenteeism1 %>%
+  dplyr::count(ethnicity, sex)
+```
+
+```{r}
+
+absent_table <- xtabs(~ ethnicity + sex + learning_pace + grade_group, data = absenteeism1)
+
+# now make the mosaic plot
+vcd::mosaic(absent_table,
+            shade = TRUE,
+            legend = TRUE,
+            main = "Mosaic Plot: Observed Frequencies")
+
+vcd::mosaic(absent_table,
+            shade = TRUE,
+            legend = TRUE,
+              type = "expected",
+            main = "Mosaic Plot: expected Frequencies")
+
+vcd::assoc(absent_table,
+            shade = TRUE,
+            legend = TRUE,
+            main = "Mosaic Plot: Associated Frequencies")
+
+
+```
+
+From the mosaic observed chart, it is evident that there is more sampling in the F1 grade group compared to other grades. There are also significantly more slow learners in F1 than expected, especially among females across both ethnicities. In contrast, there are fewer than expected average learners in the female F2 group across both ethnicities.
+
+The expected frequencies plot illustrates how students would be distributed if grade, ethnicity, sex, and learning pace were completely independent of one another. The p-values comparing observed and expected frequencies confirm that these variables are associated. Specifically, F1 Aboriginal slow learners are over-represented, while F2 Aboriginal female average learners and F3 Non-Aboriginal female slow learners are underrepresented compared to what random chance would predict.
+
+The association plot also reveals the above learning.
+
+------------------------------------------------------------------------
+
+## Conclusion
+
+This analysis shows that student absenteeism isn’t random, it’s shaped by a mix of factors, with learning pace standing out as the strongest one. Across almost every group, slow learners miss more school days than average learners, raising an important question: **do they fall behind because they miss school, or do they miss school because they’re already struggling?**
+
+There are also clear ethnic differences. **Aboriginal students tend to have higher average absences and more variation in attendance, especially among females, while Non-Aboriginal students show steadier attendance patterns with only a few extreme cases**. Gender by itself doesn’t make a huge difference overall, but certain groups stand out: like Aboriginal female slow learners in F2 and Non-Aboriginal male slow learners in F0, both showing patterns of chronic absenteeism.
+
+Absences also seem to **rise slightly with grade level, hinting that older students face more challenges staying consistent.** The mosaic plot backs this up, showing significant associations between grade, ethnicity, sex, and learning pace, with F1 showing an unexpected spike in slow learners.
+
+Overall, the findings point to a cycle where learning difficulty and absenteeism reinforce each other. Breaking that loop, especially for vulnerable groups like Aboriginal slow learners, will likely require focused, context-specific support rather than one-size-fits-all educational policies.

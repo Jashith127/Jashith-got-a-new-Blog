@@ -1,0 +1,151 @@
+---
+title: "A3 - Are Srishti Dads Weird?"
+format: html
+author: Jashith S Kumar
+description: This dataset records the responses of 65 university students from two colleges (MIT and Srishti/SMI) to a survey asking whether they believe their dads are weird. For each student, the dataset captures their gender, college affiliation, unique name, and a Yes/No response to the question "Is your dad weird?" The data is strictly categorical, enabling comparison of perceived dad weirdness across gender and institutional groupings.
+---
+
+## Data dictionary
+
+A tibble with 65 observations and 4 variables:
+
+## Qualitative Variables:
+
+> -   **gender** Gender of the student (factor with 3 levels: "M", "F", "Other" or similar).
+> -   **college** College of the student (factor with 2 levels: "MIT", "SMI"/"Srishti").
+> -   **is_dad_weird** Student perception of their dad as weird (factor with 2 levels: "Yes", "No").
+> -   **name** Name of the student (character, mostly unique).
+
+## Quantitative Variables:
+
+> -   *None in this dataset; all variables are qualitative/categorical (no direct quantitative variable like age or counts).*
+
+## loading all packages needed for data munging, visualization, and statistical analysis
+
+```{r}
+library(tidyverse)
+library(mosaic) # Our all-in-one package
+library(skimr) # Looking at data
+library(visdat) # Mapping missing data
+library(naniar) # Missing data visualization and munging
+library(janitor) # Clean the data
+library(tinytable) # Printing Tables for our data
+library(ggformula)
+library(vcd)
+
+```
+
+## reading the CSV file with the survey data
+
+```{r}
+weird_dads <- readr::read_csv("../data/weird_dads.csv")
+```
+
+## inspecting dimensions and column names
+
+```{r}
+dim(weird_dads)
+base::names(weird_dads)
+```
+
+## visualizing missing entries to highlight incomplete data and help with cleaning
+
+```{r}
+visdat::vis_miss(weird_dads)
+visdat::vis_dat(weird_dads, sort_type = TRUE, palette = "cb_safe")
+```
+
+## Replacing common missing value codes with true NA, drops rows with any NA
+
+```{r}
+weird_dads_modified <- weird_dads %>%
+  naniar::replace_with_na_all(condition = ~ .x %in% common_na_numbers) %>%
+  replace_with_na_all(condition = ~ .x %in% common_na_strings)
+
+weird_dads_modified <- weird_dads_modified %>% drop_na()
+glimpse(weird_dads_modified)
+```
+
+```{r}
+weird_dads_modified <- weird_dads_modified %>%
+  mutate(
+    gender = as.factor(gender),
+    college = as.factor(college),
+    is_dad_weird = as.factor(is_dad_weird),
+    name = as.factor(name)
+  )
+
+glimpse(weird_dads_modified)
+```
+
+## Displaying the cleaned dataset
+
+```{r}
+weird_dads_modified %>%
+  DT::datatable(
+    style = "default",
+    caption = htmltools::tags$caption(
+      style = "caption-side: top; text-align: left; color: black; font-size: 100%;", "SMI Dads Weird"
+    ),
+    options = list(pageLength = 10, autoWidth = TRUE)
+  ) %>%
+  DT::formatStyle(
+    columns = names(weird_dads_modified),
+    fontFamily = "Roboto Condensed",
+    fontSize = "12px"
+  )
+```
+
+## Bar chart showing students saying their dad is weird, split by gender
+
+```{r}
+gf_bar(~is_dad_weird | gender, data = weird_dads_modified, fill = ~is_dad_weird, palette = "Dark")
+
+
+```
+
+## Mosaic plots visualizing the relationships between gender and weird dad perception separately in each college
+
+```{r}
+# For MIT college only
+mit_data <- weird_dads_modified %>% filter(college == "MIT")
+mosaicplot(~ gender + is_dad_weird, data = mit_data, color = TRUE, main = "MIT: Gender vs Weird Dad Perception")
+
+# For SMI/Srishti college only
+smi_data <- weird_dads_modified %>% filter(college == "SMI")
+mosaicplot(~ gender + is_dad_weird, data = smi_data, color = TRUE, main = "SMI: Gender vs Weird Dad Perception")
+
+```
+
+## Cross-tab of college vs weird dad response to summarize group frequencies for statistical analysis.
+
+```{r}
+tab <- table(weird_dads_modified$college, weird_dads_modified$is_dad_weird)
+print(tab)
+```
+
+## Chi-square test on the contingency table to statistically assess whether weird dad perception varies significantly across colleges
+
+```{r}
+chisq.test(tab)
+```
+
+## Bar chart of proportions of "yes"/"no" responses in each college to visually compare group percentages
+
+```{r}
+gf_bar(~is_dad_weird | college, data = weird_dads_modified, fill = ~is_dad_weird, position = "fill")
+
+```
+
+## Mosaic of college vs weird dad response distribution.
+
+```{r}
+
+
+tab <- table(weird_dads_modified$college, weird_dads_modified$is_dad_weird)
+
+
+mosaic(~ college + is_dad_weird, data = weird_dads_modified,
+       shade = TRUE,
+       main = "Dads are Weird: MIT vs SMI")
+```

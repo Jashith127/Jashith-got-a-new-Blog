@@ -1,0 +1,146 @@
+---
+title: "A3 - Weekly Expenditure Patterns by Gender Among Students"
+format: html
+author: Jashith S Kumar
+description: This dataset records weekly expenditure amounts reported by university students, including their gender and name. It enables visualization and comparison of spending patterns by gender, highlighting differences in central tendency, spread, and potential outliers. The dataset supports both descriptive and inferential statistical analyses targeting group financial behaviors.
+---
+
+## Data Dictionary
+
+A tibble with 40 observations and 3 variables:
+
+## Qualitative Variables:
+
+> -   **name** Name of the respondent (mostly unique, factor)
+> -   **gender** Gender of the respondent (factor, e.g., "M", "F")
+
+
+## Quantitative Variables:
+
+> -   **total_expenditure_last_week** Self-reported total expenditure in the previous week 
+
+## Loads all R packages needed for data munging, visualization, and analysis
+
+```{r}
+library(tidyverse)
+library(mosaic) # Our all-in-one package
+library(skimr) # Looking at data
+library(visdat) # Mapping missing data
+library(naniar) # Missing data visualization and munging
+library(janitor) # Clean the data
+library(tinytable) # Printing Tables for our data
+library(ggformula)
+library(ggplot2)
+library(ggpubr) 
+library(janitor)
+library(rstatix)
+library(vcd)
+library(dplyr)
+```
+
+## Reads the ratings data from CSV and standardizes the column names to snake_case
+
+```{r}
+spend <- readr::read_csv("../data/weekly_expenditure.csv") %>% 
+janitor::clean_names(case = "snake")
+```
+
+## Shows the number of rows and columns in the dataset
+
+```{r}
+dim(spend)
+```
+
+## Lists the column names in the dataset
+
+```{r}
+base::names(spend)
+```
+
+## Visualizes missing data and overall structure using the visdat package
+
+```{r}
+visdat::vis_miss(spend)
+visdat::vis_dat(spend, sort_type = TRUE, palette = "cb_safe")
+```
+
+## Cleans, standardizes, and removes missing data, then previews the dataframe
+
+```{r}
+spend_modified <- spend %>%
+  naniar::replace_with_na_all(condition = ~ .x %in% common_na_numbers) %>%
+  replace_with_na_all(condition = ~ .x %in% common_na_strings)
+
+spend_modified <- spend_modified %>% drop_na()
+glimpse(spend_modified)
+```
+
+## Builds a contingency table for tattoo attractiveness preference by gender and visualizes it using a grouped bar chart
+
+```{r}
+spend_modified <- spend_modified %>%
+  mutate(
+    name = as.factor(name),
+    gender = as.factor(gender)
+
+  )
+
+glimpse(spend_modified )
+```
+
+## Displaying the cleaned data in a table for inspection
+
+```{r}
+spend_modified %>%
+  DT::datatable(
+    style = "default",
+    caption = htmltools::tags$caption(
+      style = "caption-side: top; text-align: left; color: black; font-size: 100%;", "Weekly Expenditure"
+    ),
+    options = list(pageLength = 10, autoWidth = TRUE)
+  ) %>%
+  DT::formatStyle(
+    columns = names(spend_modified),
+    fontFamily = "Roboto Condensed",
+    fontSize = "12px"
+  )
+```
+
+## plotting a histogram to show expenditure habits by gender
+```{r}
+ggplot(spend_modified, aes(x = total_expenditure_last_week, fill = gender)) +
+  geom_histogram(bins = 15, alpha = 0.7, position = "identity") +
+  facet_wrap(~ gender, scales = "free_y") +
+  labs(title = "Expenditure Histogram by Gender",
+       x = "Total Expenditure Last Week",
+       y = "Count") +
+  theme_minimal()
+
+
+```
+
+## Plotting mean weekly expenditure differs by gender
+
+```{r}
+
+means <- spend_modified %>%
+  group_by(gender) %>%
+  summarise(mean_expenditure = mean(total_expenditure_last_week, na.rm = TRUE))
+
+# Plot bar graph of means by gender
+ggplot(means, aes(x = gender, y = mean_expenditure, fill = gender)) +
+  geom_bar(stat = "identity", width = 0.6) +
+  labs(title = "Mean Weekly Expenditure by Gender",
+       x = "Gender",
+       y = "Mean Expenditure") +
+  theme_minimal()
+
+
+
+```
+
+## t.test on expenditure
+
+```{r}
+t.test(total_expenditure_last_week ~ gender, data = spend_modified)
+```

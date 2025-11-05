@@ -1,0 +1,137 @@
+---
+title: "A3 - Student Tattoo Attraction Preferences by Gender"
+format: html
+author: Jashith S Kumar
+description: A survey dataset of student-reported ratings for three television series—Friends, Modern Family, and The Big Bang Theory.
+---
+
+## Data Dictionary
+
+A tibble with 40 observations and 3 variables:
+
+## Qualitative Variables:
+
+> -   **name** Name of the respondent (mostly unique, factor)
+> -   **gender** Gender of the respondent (factor, e.g., "M", "F")
+> -   **tattoo_attractive** Response to "Do you find tattoos attractive?" ("Yes" or "No", factor)
+
+## Quantitative Variables:
+> -   *None in this dataset; all variables are qualitative/categorical (no direct quantitative variable like age or counts).*
+
+## Loads all R packages needed for data munging, visualization, and analysis
+
+```{r}
+library(tidyverse)
+library(mosaic) # Our all-in-one package
+library(skimr) # Looking at data
+library(visdat) # Mapping missing data
+library(naniar) # Missing data visualization and munging
+library(janitor) # Clean the data
+library(tinytable) # Printing Tables for our data
+library(ggformula)
+library(ggplot2)
+library(ggpubr) 
+library(janitor)
+library(rstatix)
+library(vcd)
+```
+
+## Reads the ratings data from CSV and standardizes the column names to snake_case
+
+```{r}
+tat <- readr::read_csv("../data/tattoo_attraction.csv") %>% 
+janitor::clean_names(case = "snake")
+```
+
+## Shows the number of rows and columns in the dataset
+
+```{r}
+dim(tat)
+```
+
+## Lists the column names in the dataset
+
+```{r}
+base::names(tat)
+```
+
+## Visualizes missing data and overall structure using the visdat package
+
+```{r}
+visdat::vis_miss(tat)
+visdat::vis_dat(tat, sort_type = TRUE, palette = "cb_safe")
+```
+
+## Cleans, standardizes, and removes missing data, then previews the dataframe
+
+```{r}
+tat_modified <- tat %>%
+  naniar::replace_with_na_all(condition = ~ .x %in% common_na_numbers) %>%
+  replace_with_na_all(condition = ~ .x %in% common_na_strings)
+
+tat_modified <- tat_modified %>% drop_na()
+glimpse(tat_modified)
+```
+
+##  Builds a contingency table for tattoo attractiveness preference by gender and visualizes it using a grouped bar chart
+
+```{r}
+tat_modified <- tat_modified %>%
+  mutate(
+    name = as.factor(name),
+    gender = as.factor(gender),
+    tattoo_attractive = as.factor(tattoo_attractive)
+  )
+
+glimpse(tat_modified)
+```
+
+## Displaying the cleaned data in a table for inspection
+
+```{r}
+tat_modified %>%
+  DT::datatable(
+    style = "default",
+    caption = htmltools::tags$caption(
+      style = "caption-side: top; text-align: left; color: black; font-size: 100%;", "are tatoos attractive"
+    ),
+    options = list(pageLength = 10, autoWidth = TRUE)
+  ) %>%
+  DT::formatStyle(
+    columns = names(tat_modified),
+    fontFamily = "Roboto Condensed",
+    fontSize = "12px"
+  )
+```
+
+## Calculating and reports mean and standard deviation for each show’s ratings
+
+```{r}
+tab <- table(tat_modified$tattoo_attractive, tat_modified$gender)
+
+barplot(tab,
+        beside = TRUE,
+        col = c("skyblue", "orange"),
+        legend.text = TRUE,
+        args.legend = list(title = "like tatoos", x = "topright"),
+        main = "Tattoo Attraction by Gender",
+        xlab = "Is Tattoo Attractive?",
+        ylab = "Count")
+
+
+```
+
+
+
+##  total bar graph of tattoo attractiveness preference (regardless of gender)
+
+```{r}
+totals <- table(tat_modified$tattoo_attractive)
+
+barplot(totals,
+        col = c("grey80", "darkolivegreen3"),
+        main = "Total Tattoo Attractiveness Preference",
+        xlab = "Is Tattoo Attractive?",
+        ylab = "Number of Respondents")
+```
+

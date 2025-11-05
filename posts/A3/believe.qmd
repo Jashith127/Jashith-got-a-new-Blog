@@ -1,0 +1,141 @@
+---
+title: "A3 - Belief in God by Gender: Student Survey Results"
+format: html
+author: Jashith S Kumar
+description: This dataset records the self-reported belief in God of university students, including their gender and name. The data supports analysis of differences and associations between gender and religious belief, using both visual and statistical methods.
+---
+
+## Data Dictionary
+
+A tibble with 40 observations and 3 variables:
+
+## Qualitative Variables:
+
+> -   **name** Name of the respondent (mostly unique, factor)
+> -   **gender** Gender of the respondent (factor, e.g., "M", "F")
+> -   **believe_in_god** Response to "Do you believe in God?" ("Yes" or "No")
+
+## Quantitative Variables:
+
+> -   *None in this dataset; all variables are qualitative/categorical (no direct quantitative variable like age or counts).*
+
+
+## Loads all R packages needed for data munging, visualization, and analysis
+
+```{r}
+library(tidyverse)
+library(mosaic) # Our all-in-one package
+library(skimr) # Looking at data
+library(visdat) # Mapping missing data
+library(naniar) # Missing data visualization and munging
+library(janitor) # Clean the data
+library(tinytable) # Printing Tables for our data
+library(ggformula)
+library(ggplot2)
+library(ggpubr) 
+library(janitor)
+library(rstatix)
+library(vcd)
+library(dplyr)
+```
+
+## Reads the ratings data from CSV and standardizes the column names to snake_case
+
+```{r}
+belief <- readr::read_csv("../data/believe_in_god.csv") %>% 
+janitor::clean_names(case = "snake")
+```
+
+## Shows the number of rows and columns in the dataset
+
+```{r}
+dim(belief)
+```
+
+## Lists the column names in the dataset
+
+```{r}
+base::names(belief)
+```
+
+## Visualizes missing data and overall structure using the visdat package
+
+```{r}
+visdat::vis_miss(belief)
+visdat::vis_dat(belief, sort_type = TRUE, palette = "cb_safe")
+```
+
+## Cleans, standardizes, and removes missing data, then previews the dataframe
+
+```{r}
+belief_modified <- belief %>%
+  naniar::replace_with_na_all(condition = ~ .x %in% common_na_numbers) %>%
+  replace_with_na_all(condition = ~ .x %in% common_na_strings)
+
+belief_modified <- belief_modified %>% drop_na()
+glimpse(belief_modified)
+```
+
+## Builds a contingency table for tattoo attractiveness preference by gender and visualizes it using a grouped bar chart
+
+```{r}
+belief_modified <- belief_modified %>%
+  mutate(
+    name = as.factor(name),
+    gender = as.factor(gender),
+    believe_in_god = as.factor(believe_in_god)
+  )
+
+glimpse(belief_modified)
+```
+
+## Displaying the cleaned data in a table for inspection
+
+```{r}
+belief_modified %>%
+  DT::datatable(
+    style = "default",
+    caption = htmltools::tags$caption(
+      style = "caption-side: top; text-align: left; color: black; font-size: 100%;", "Weekly Expenditure"
+    ),
+    options = list(pageLength = 10, autoWidth = TRUE)
+  ) %>%
+  DT::formatStyle(
+    columns = names(belief_modified),
+    fontFamily = "Roboto Condensed",
+    fontSize = "12px"
+  )
+```
+
+## bar chart of Belief in god by gender
+
+```{r}
+tab <- table(Gender = belief_modified$gender, Belief = belief_modified$believe_in_god)
+
+
+mosaic(tab, shade = TRUE, legend = TRUE,
+       labeling_args = list(
+         set_varnames = c(Gender = "Gender", Belief = "Belief in God"),
+         rot_labels = c(left = 0, top = 0)
+       ),
+       main = "Belief in God by Gender (Mosaic Plot)")
+
+```
+
+## bar chart of Belief in god grrouped by gender
+
+```{r}
+
+tab <- table(belief_modified$gender, belief_modified$believe_in_god)
+
+barplot(tab,
+        beside = TRUE,
+        col = c("skyblue", "tomato"),
+        legend.text = TRUE,
+        args.legend = list(title = "Belief in God", x = "topright"),
+        main = "Grouped Bar Chart: Belief in God by Gender",
+        xlab = "Belief in God",
+        ylab = "Count")
+
+
+```

@@ -167,20 +167,18 @@ These frequency tables reveal the distribution of observations across smoking ca
 Next, we checked patterns across social class and smoking:
 
 ```{r}
-ggplot(scottish1, aes(x = smoking_status, y = age_years, fill = respondent_sex, color = respondent_sex)) +
-  geom_boxplot(alpha = 0.7) +
-  scale_fill_brewer(palette = "Set3") +
-  scale_color_brewer(palette = "Set3") +
+ggplot(scottish1, aes(y = smoking_status, x = age_years, fill = respondent_sex)) +
+  geom_boxplot(alpha = 0.7, position = position_dodge(width = 0.75)) +
+  scale_fill_brewer(palette = "Pastel2") +
   labs(
-    title = "Boxplot of Age by Smoking Status and Sex",
-    subtitle = "Examining age distributions across smoking categories by gender",
-    x = "Smoking Status",
-    y = "Age (Years)",
-    fill = "Sex",
-    color = "Sex"
+    title = "Boxplot of Smoking Status by Age and Sex",
+    subtitle = "Examining smoking categories by age distributions and gender",
+    y = "Smoking Status",
+    x = "Age (Years)",
+    fill = "Sex"
   ) +
-  theme_minimal(base_size = 13) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme_minimal(base_size = 13)
+
 ```
 
 **Observation:** The boxplot reveals distinct age patterns across smoking status categories. Former smokers tend to be older on average, while current smokers show a wider age distribution. The patterns are largely consistent between males and females, suggesting similar smoking behavior trajectories across genders. Never-smokers show a broad age range, indicating that non-smoking is prevalent across all adult age groups.
@@ -250,23 +248,29 @@ ggplot(scottish1, aes(x = age_years, y = deprivation_score)) +
 ```{r}
 
 
+library(dplyr)
+library(ggplot2)
+
+# Find top 10 area codes by respondent count
 top_areas <- scottish1 %>%
   count(area) %>%
   top_n(10, n) %>%
   pull(area)
 
+# Filter data to only those top 10 areas
 scottish_top_areas <- scottish1 %>% filter(area %in% top_areas)
 
+# Scatter plot of deprivation score by area code (for top 10 areas)
 ggplot(scottish_top_areas, aes(x = as.factor(area), y = deprivation_score)) +
-  geom_boxplot(alpha = 0.7, outlier.colour = "red", outlier.size = 2, fill = "grey70") +
+  geom_jitter(width = 0.2, alpha = 0.6, color = "steelblue", size = 1.2) +
   labs(
-    title = "Deprivation Score: Top 10 Areas",
-    subtitle = "Only showing top 10 by respondent count",
+    title = "Deprivation Score: Top 10 Areas (Scatterplot)",
+    subtitle = "Individual deprivation scores in the most sampled area codes",
     x = "Area Code",
     y = "Carstairs Deprivation Score"
   ) +
-  theme_minimal(base_size = 13) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme_minimal(base_size = 13)
+
 
 
 ```
@@ -320,7 +324,7 @@ ggplot(scottish_sample, aes(x = deprivation_score, y = as.factor(social_class), 
 
 ```
 
-## **Observation:** Lower social classes are more likely to have higher deprivation scores, but all social classes contain individuals across a wide range of neighborhood affluence and deprivation. The overlap in distributions across classes highlights that individual socioeconomic status and area-level deprivation are related but not perfectly aligned for all respondents.
+**Observation:** Lower social classes are more likely to have higher deprivation scores, but all social classes contain individuals across a wide range of neighborhood affluence and deprivation. The overlap in distributions across classes highlights that individual socioeconomic status and area-level deprivation are related but not perfectly aligned for all respondents.
 
 ```{r}
 scottish1 %>%

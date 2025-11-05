@@ -1,0 +1,193 @@
+---
+title: " A3 - Student Ratings of Three Popular TV Series: Friends, Modern Family, and The Big Bang Theory"
+format: html
+author: Jashith S Kumar
+description: A survey dataset of student-reported ratings for three television series—Friends, Modern Family, and The Big Bang Theory.
+---
+
+## Data Dictionary
+
+A tibble with 52 observations and 5 variables:
+
+## Qualitative Variables:
+
+> -   name: Name of the respondent (mostly unique, factor).
+
+> -   gender: Gender of the respondent (factor, e.g., "Male", "Female").
+
+## Quantitative Variables:
+
+> -   friends: Student rating for 'Friends' (integer, scale 1–10).
+
+> -   modern_family: Rating for 'Modern Family' (integer, scale 1–10).
+
+> -   big_bang_theory: Rating for 'Big Bang Theory' (integer, scale 1–10).
+
+## Loads all R packages needed for data munging, visualization, and analysis
+
+```{r}
+library(tidyverse)
+library(mosaic) # Our all-in-one package
+library(skimr) # Looking at data
+library(visdat) # Mapping missing data
+library(naniar) # Missing data visualization and munging
+library(janitor) # Clean the data
+library(tinytable) # Printing Tables for our data
+library(ggformula)
+library(ggplot2)
+library(ggpubr) 
+library(janitor)
+library(rstatix)
+```
+
+## Reads the ratings data from CSV and standardizes the column names to snake_case
+
+```{r}
+tv_series <- readr::read_csv("../data/tv_series.csv") %>% 
+janitor::clean_names(case = "snake")
+```
+
+## Shows the number of rows and columns in the dataset
+
+```{r}
+dim(tv_series)
+```
+
+## Lists the column names in the dataset
+
+```{r}
+base::names(tv_series)
+```
+
+## Visualizes missing data and overall structure using the visdat package
+
+```{r}
+visdat::vis_miss(tv_series)
+visdat::vis_dat(tv_series, sort_type = TRUE, palette = "cb_safe")
+```
+
+## Cleans, standardizes, and removes missing data, then previews the dataframe
+
+```{r}
+tv_series_modified <- tv_series %>%
+  naniar::replace_with_na_all(condition = ~ .x %in% common_na_numbers) %>%
+  replace_with_na_all(condition = ~ .x %in% common_na_strings)
+
+tv_series_modified <- tv_series_modified %>% drop_na()
+glimpse(tv_series_modified)
+```
+
+## Converts name and gender to factor types and previews the updated dataframe
+
+```{r}
+tv_series_modified <- tv_series_modified %>%
+  mutate(
+    name = as.factor(name),
+    gender = as.factor(gender)
+  )
+
+glimpse(tv_series_modified)
+```
+
+## Displays the cleaned data in a table for inspection
+
+```{r}
+tv_series_modified %>%
+  DT::datatable(
+    style = "default",
+    caption = htmltools::tags$caption(
+      style = "caption-side: top; text-align: left; color: black; font-size: 100%;", "prefernce in popular tv series"
+    ),
+    options = list(pageLength = 10, autoWidth = TRUE)
+  ) %>%
+  DT::formatStyle(
+    columns = names(tv_series_modified),
+    fontFamily = "Roboto Condensed",
+    fontSize = "12px"
+  )
+```
+
+## Calculates and reports mean and standard deviation for each show’s ratings
+
+```{r}
+tibble(
+  friends_mean = mean(tv_series_modified$friends),
+  friends_sd = sd(tv_series_modified$friends),
+  modern_family_mean = mean(tv_series_modified$modern_family),
+  modern_family_sd = sd(tv_series_modified$modern_family),
+  big_bang_mean = mean(tv_series_modified$big_bang_theory),
+  big_bang_sd = sd(tv_series_modified$big_bang_theory)
+)
+
+
+```
+
+## Visualizes the distribution of ratings for each show as boxplots
+
+```{r}
+boxplot(tv_series_modified$friends,
+        tv_series_modified$modern_family,
+        tv_series_modified$big_bang_theory,
+        names = c("Friends", "Modern Family", "Big Bang Theory"),
+        col = c("skyblue", "orange", "purple"),
+        ylab = "Rating",
+        main = "TV Show Ratings")
+
+```
+
+## Displays mean ratings across shows as a bar graph
+
+```{r}
+means <- c(mean(tv_series_modified$friends),
+           mean(tv_series_modified$modern_family),
+           mean(tv_series_modified$big_bang_theory))
+shows <- c("Friends", "Modern Family", "Big Bang Theory")
+barplot(means, names.arg = shows, col = c("skyblue", "orange", "purple"),
+        ylab = "Mean Rating", main = "Mean Ratings for TV Shows")
+
+```
+
+## Performs repeated measures ANOVA to test if mean ratings differ by show
+
+```{r}
+id <- seq_len(nrow(tv_series_modified))
+ratings_matrix <- as.matrix(tv_series_modified[,c("friends", "modern_family", "big_bang_theory")])
+long <- stack(tv_series_modified[,c("friends", "modern_family", "big_bang_theory")])
+long$id <- rep(id, 3)
+long$series <- rep(c("friends", "modern_family", "big_bang_theory"), each = nrow(tv_series_modified))
+anova_results <- aov(values ~ factor(series) + Error(id/factor(series)), data = long)
+summary(anova_results)
+
+
+```
+
+## Creates a pie chart showing the most preferred show (highest rating) for each respondent
+
+```{r}
+highest <- apply(tv_series_modified[,c("friends", "modern_family", "big_bang_theory")], 1, function(row) {
+  c("Friends", "Modern Family", "Big Bang Theory")[which.max(row)]
+})
+pie(table(highest),
+    col = c("skyblue", "orange", "purple"),
+    main = "Most Preferred Show (Highest Rating)")
+
+
+```
+
+## Draws a grouped barplot showing mean ratings for each show split by gender
+
+```{r}
+friends_means <- tapply(tv_series_modified$friends, tv_series_modified$gender, mean)
+modern_means  <- tapply(tv_series_modified$modern_family, tv_series_modified$gender, mean)
+bigbang_means <- tapply(tv_series_modified$big_bang_theory, tv_series_modified$gender, mean)
+means_matrix <- rbind(friends_means, modern_means, bigbang_means)
+rownames(means_matrix) <- c("Friends", "Modern Family", "Big Bang Theory")
+
+barplot(means_matrix,
+        beside = TRUE,
+        col = c("skyblue", "orange", "purple"),
+        legend.text = TRUE,
+        args.legend = list(title = "Gender", x = "topright"),
+        ylab = "Mean Rating",
+        main = "Mean TV Show Ratings by Gender")
+```
